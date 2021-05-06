@@ -77,7 +77,7 @@ namespace UnitTests
                 fakeShell.Paths.Add(basePath);
 
                 CmdSuggestions s = new CmdSuggestions(fakeShell);
-                var result = await s.GetSuggestionsAsync("c", 1);
+                var result = await s.GetSuggestionsAsync("x", 1);
 
                 Assert.AreEqual(0, result.Count);
             }
@@ -164,25 +164,25 @@ namespace UnitTests
                 CmdSuggestions s = new CmdSuggestions(fakeShell);
                 var result = await s.GetSuggestionsAsync("echo A; cd T", 12);
                 Assert.AreEqual(1, result.Count);
-                Assert.AreEqual("estFiles\\", result[0].CompletionText);
+                Assert.AreEqual("estFiles"+ Path.DirectorySeparatorChar, result[0].CompletionText);
                 Assert.AreEqual(12, result[0].Index);
 
                 result = await s.GetSuggestionsAsync("echo A;cd T", 11);
                 Assert.AreEqual(1, result.Count);
                 Assert.AreEqual(1, result.Count);
-                Assert.AreEqual("estFiles\\", result[0].CompletionText);
+                Assert.AreEqual("estFiles"+ Path.DirectorySeparatorChar, result[0].CompletionText);
                 Assert.AreEqual(11, result[0].Index);
 
                 result = await s.GetSuggestionsAsync("echo A && cd T", 14);
                 Assert.AreEqual(1, result.Count);
                 Assert.AreEqual(1, result.Count);
-                Assert.AreEqual("estFiles\\", result[0].CompletionText);
+                Assert.AreEqual("estFiles"+ Path.DirectorySeparatorChar, result[0].CompletionText);
                 Assert.AreEqual(14, result[0].Index);
 
                 result = await s.GetSuggestionsAsync("cd T && cd A", 4);
                 Assert.AreEqual(1, result.Count);
                 Assert.AreEqual(1, result.Count);
-                Assert.AreEqual("estFiles\\", result[0].CompletionText);
+                Assert.AreEqual("estFiles"+ Path.DirectorySeparatorChar, result[0].CompletionText);
                 Assert.AreEqual(4, result[0].Index);
             }
         }

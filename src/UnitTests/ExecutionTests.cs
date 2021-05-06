@@ -63,7 +63,7 @@ namespace UnitTests
         {
             var errorDisplay = new ErrorDisplay(new AssertingConsole());
             var exe = await Executer.GetDefaultExecuterAsync(errorDisplay);
-            await exe.ExecuteFileAsync(@".\TestFiles\nshScriptTest.nsh");
+            await exe.ExecuteFileAsync(@".\TestFiles\nshScriptTest.nsh".Replace('\\', Path.DirectorySeparatorChar));
         }
 
         [TestMethod]
@@ -71,7 +71,7 @@ namespace UnitTests
         {
             var errorDisplay = new ErrorDisplay(new AssertingConsole());
             var exe = await Executer.GetDefaultExecuterAsync(errorDisplay);
-            await exe.ExecuteFileAsync(@".\TestFiles\csScriptTest.cs");
+            await exe.ExecuteFileAsync(@".\TestFiles\csScriptTest.cs".Replace('\\', Path.DirectorySeparatorChar));
         }
 
         [TestMethod]

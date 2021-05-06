@@ -67,7 +67,7 @@ namespace UnitTests
             using (var ms = new MemoryStream())
             {
                 var fakeShell = new Shell();
-                fakeShell.ChangeDir(Path.GetFullPath(testDir + @"\TestFiles"));
+                fakeShell.ChangeDir(Path.GetFullPath(testDir + Path.DirectorySeparatorChar + @"TestFiles"));
                 Assert.IsTrue(fakeShell.WorkingDirectory.EndsWith("TestFiles"));
 
                 fakeShell.ChangeDir("..");

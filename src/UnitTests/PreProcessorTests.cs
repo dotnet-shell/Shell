@@ -27,8 +27,7 @@ namespace UnitTests
         [TestMethod]
         public async Task VerbatimRegionCSharpAsync()
         {
-            var script = @"
-#region c#
+            var script = @"#region c#
 everything
 here is
 verbatim
@@ -41,8 +40,8 @@ echo hello
                 var fakeShell = new Shell();
                 var result = await(new SourceProcessor()).ProcessAsync(script);
 
-                var scriptAsString = script.Replace("#region c#", string.Empty).Replace("#endregion", string.Empty).Trim();
-                Assert.AreEqual(scriptAsString, result.Trim());
+                var scriptAsString = script.Replace("#region c#", string.Empty).Replace("#endregion", string.Empty).Trim().Replace("\r\n", "LINE").Replace("\n", "LINE");
+                Assert.AreEqual(scriptAsString, result.Replace("\r\n", "LINE").Replace("\n", "LINE").Trim());
             }
         }
 
@@ -145,9 +144,9 @@ var exec=`cat $testNum$ $testStr$`;";
                 var result = await(new SourceProcessor()).ProcessAsync(script);
 
                 var output = result.Split(Environment.NewLine);
-                Assert.AreEqual(script.Trim().Split(Environment.NewLine)[0], output[0]);
-                Assert.AreEqual(script.Trim().Split(Environment.NewLine)[1], output[1]);
-                Assert.AreEqual("var exec=Shell.Execute(\"cat \"+testNum+\" \"+testStr, Redirection.Out).ConvertStdOutToVariable<string>();", output[2]);
+                Assert.AreEqual(script.Trim().Split(Environment.NewLine)[0].Trim(), output[0].Trim());
+                Assert.AreEqual(script.Trim().Split(Environment.NewLine)[1].Trim(), output[1].Trim());
+                Assert.AreEqual("var exec=Shell.Execute(\"cat \"+testNum+\" \"+testStr, Redirection.Out).ConvertStdOutToVariable<string>();", output[2].Trim());
             }
         }
 
