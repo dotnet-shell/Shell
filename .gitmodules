@@ -1,0 +1,4 @@
+[submodule "docs/templates/DiscordFX"]
+	path = docs/templates/DiscordFX
+	url = https://github.com/jbltx/DiscordFX
+	branch = master
