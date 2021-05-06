@@ -18,7 +18,7 @@
       "output": {
         ".html": {
           "relative_path": "index.html",
-          "hash": "JoVFtF8wcLgbCLZxPZcMmfOz2qNGmVcIoWxTTbjWYCw="
+          "hash": "CklARJew0SCZ5MbDlC4S33RAXhI77HyeXTVBJ1SsZv8="
         }
       },
       "is_incremental": false,
@@ -248,7 +248,7 @@
           "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 15,
-          "skipped_file_count": 15
+          "skipped_file_count": 13
         },
         "TocDocumentProcessor": {
           "can_incremental": false,

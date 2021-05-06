@@ -74,7 +74,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CSharp;
 
-using static System.Console;            // static membersmake you scripts shorter
+using static System.Console;            // static members smake your scripts shorter
 WriteLine("Are you ready? Y/N:");
 
 // You can run a system command just like in Bash
