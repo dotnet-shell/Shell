@@ -1,0 +1,17 @@
+﻿Shell.AddCSAlias("red", "Console.WriteLine(new ColorString(\"{0}\", Color.Red).TextWithFormattingCharacters);");
+Shell.AddCSAlias("green", "Console.WriteLine(new ColorString(\"{0}\", Color.Green).TextWithFormattingCharacters);");
+Shell.AddCSAlias("quit", "Environment.Exit(0);");
+
+// Begin Linux specific aliaases
+if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { return; }
+
+Shell.AddCmdAlias("ls", "ls --color=auto ");
+Shell.AddCmdAlias("dir", "dir --color=always ");
+Shell.AddCmdAlias("vdir", "vdir --color=always ");
+Shell.AddCmdAlias("grep", "grep --color=always ");
+Shell.AddCmdAlias("fgrep", "fgrep --color=always ");
+Shell.AddCmdAlias("egrep", "egrep --color=always ");
+Shell.AddCmdAlias("ll", "ls -alF ");
+Shell.AddCmdAlias("la", "ls -A ");
+Shell.AddCmdAlias("l", "ls -CF ");
+Shell.AddCmdAlias("vim", "vim -T xterm-256color ");
