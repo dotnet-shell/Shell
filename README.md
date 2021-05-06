@@ -1,6 +1,6 @@
 <h1 align="center">Welcome to dotnet-shell the C# script compatible shell</h1>
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-0.1-blue.svg?cacheSeconds=2592000" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.0-blue.svg?cacheSeconds=2592000" />
   <a href="https://en.wikipedia.org/wiki/MIT_License" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
   </a>
@@ -148,7 +148,7 @@ Contributions, issues and feature requests are welcome!<br />Feel free to check 
 
 ## License
 
-Copyright © 2021 [i-am-shodan](https://github.com/i-am-shodan).<br />
+Copyright Â© 2021 [i-am-shodan](https://github.com/i-am-shodan).<br />
 This project is [MIT](https://en.wikipedia.org/wiki/MIT_License) licensed.
 
 ***
