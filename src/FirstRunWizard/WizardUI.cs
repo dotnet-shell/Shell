@@ -115,7 +115,7 @@ namespace FirstRunWizard
 
         private void ShowWindowsTerminalConfig()
         {
-            const string Data = @"If you use Windows Terminal you can easily access CSXShell by including a new environment in your
+            const string Data = @"If you use Windows Terminal you can easily access dotnet-shell by including a new environment in your
 Settings file such as in the following snippet:
       {
         ""guid"": ""{YOUR DISTRO GUID}"",

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Scripting;
 
 namespace Dotnet.Shell.Logic.Compilation
 {
-    public class Executer
+    internal class Executer
     {
         private readonly ErrorDisplay errorHelper;
         private readonly ConcurrentQueue<string> runOnCompletion = new ConcurrentQueue<string>();

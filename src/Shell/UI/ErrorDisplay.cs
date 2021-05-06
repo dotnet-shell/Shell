@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace Dotnet.Shell.UI
 {
-    public class ErrorDisplay : IOptionsMonitor<ConsoleLoggerOptions>
+    internal class ErrorDisplay : IOptionsMonitor<ConsoleLoggerOptions>
     {
         private IConsole console;
         private ConsoleLoggerOptions _consoleLoggerOptions;
@@ -61,7 +61,7 @@ namespace Dotnet.Shell.UI
                     {
                         var trimmedLine = line.TrimStart();
                         if (!trimmedLine.StartsWith("at Microsoft.CodeAnalysis.Scripting.") &&
-                            !trimmedLine.StartsWith("at CSXShell.Logic.Compilation."))
+                            !trimmedLine.StartsWith("at Dotnet.Shell.Logic.Compilation."))
                         {
                             console.WriteLine(new ColorString(line, System.Drawing.Color.Yellow).TextWithFormattingCharacters);
                         }

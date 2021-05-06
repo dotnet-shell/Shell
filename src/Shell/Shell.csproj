@@ -11,7 +11,7 @@
     <PackageLicenseExpression></PackageLicenseExpression>
     <RepositoryUrl>https://github.com/dotnet-shell</RepositoryUrl>
     <Description>dotnet-shell is an interactive BASH-like shell based on CSharp script (CSX)</Description>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>dotnet-shell</ToolCommandName>
     <Authors>dotnet-shell</Authors>
@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\LICENSE.md">
+    <None Include="..\..\LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>

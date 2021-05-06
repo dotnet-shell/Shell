@@ -7,7 +7,7 @@ using ConsoleGUI.UserDefined;
 
 namespace ConsoleGUI.Controls
 {
-    public class ListView : SimpleControl, IInputListener
+    internal class ListView : SimpleControl, IInputListener
     {
         public Color TextColor { get; set; } = Color.White;
         public Color SelectedTextColor { get; set; } = Color.Black;

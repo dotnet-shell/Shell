@@ -40,7 +40,7 @@ namespace Dotnet.Shell.Logic.Suggestions
                 "System.Linq",
                 "System.Drawing",
                 "System.IO",
-                "CSXShell.UI"
+                "Dotnet.Shell.UI"
             };
             usings.AddRange(Settings.Default.AdditionalUsings);
 

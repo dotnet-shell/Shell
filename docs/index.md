@@ -87,6 +87,9 @@ DirectoryInfo dir = `/bin/echo /bin/`;
 FileInfo file = `/bin/echo /bin/ls`;
 int aNumber=`/bin/echo 500`;
 
+// You can combine these into something quite powerful
+List<string> z=`dmesg`; z.Distinct().Count();
+
 var variable = "Lets say you have a variable";
 // This is how you pass it into a system command
 echo $variable$
@@ -111,9 +114,9 @@ echo $variable$
 
   -u, --using                 Additional 'using' statements to include
 
-  --popupCmd                  (Default: tmux popup -KER '{0}' -x 60 -y 0 -w 60% -h 100%) Command to run to raise a system popup window, must include {0} format specifier for the csxshell command
+  --popupCmd                  (Default: tmux popup -KER '{0}' -x 60 -y 0 -w 60% -h 100%) Command to run to raise a system popup window, must include {0} format specifier for the dotnet-shell command
 
-  --historyCmd                (Default: dotnet {0} --history --apiport {1} --token {2}) CSXShell command line to execute when the history subprocess. Must include {0} format specifier for DLL location, {1} for port and {2} for token parameters
+  --historyCmd                (Default: dotnet {0} --history --apiport {1} --token {2}) dotnet-shell command line to execute when the history subprocess. Must include {0} format specifier for DLL location, {1} for port and {2} for token parameters
 
   --additionalHistory         Path to additional OS specific history files
 

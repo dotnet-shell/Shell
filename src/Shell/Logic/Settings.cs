@@ -32,7 +32,7 @@ namespace Dotnet.Shell.Logic
     public class Settings
     {
         /// <summary>
-        /// The default settings used by CSXShell
+        /// The default settings used by dotnet-shell
         /// </summary>
         public static Settings Default = new Settings();
 

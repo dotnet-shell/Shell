@@ -20,7 +20,7 @@ using Microsoft.Extensions.Logging.Console;
 namespace Dotnet.Shell.Logic.Compilation
 {
     /// <summary>
-    /// This class integrates CSXShell with Dotnet Script.
+    /// This class integrates dotnet-shell with Dotnet Script.
     /// It is based on a simplified version of https://github.com/filipw/dotnet-script/blob/master/src/Dotnet.Script.Core/Interactive/InteractiveRunner.cs
     /// </summary>
     internal class InteractiveRunner

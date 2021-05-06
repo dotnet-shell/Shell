@@ -4,7 +4,7 @@
       "src": [
         {
           "files": [ "**/*.csproj" ],
-            "exclude": [ "**/unittests/**" ],
+          "exclude": [ "**/unittests/**", "**/firstrunwizard/**" ],
           "src": "../src"
         }
       ],
@@ -24,7 +24,7 @@
     ],
     "overwrite": "specs/*.md",
     "globalMetadata": {
-      "_appTitle": "CSXShell",
+      "_appTitle": "dotnet-shell",
       "_enableSearch": true
     },
     "markdownEngineName": "markdig",

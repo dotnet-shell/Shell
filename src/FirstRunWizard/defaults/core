@@ -1,5 +1,5 @@
-﻿// ~/.csxx/core.nsh is executed by CSXShell for all interactive shells.
-// see http://XXXXXXXXXXXXXXXXXX for more examples
+﻿// ~/.csxx/core.nsh is executed by dotnet-shell for all interactive shells.
+// see https://github.com/dotnet-shell/ExampleScripts for more examples
 
 // Default includes
 using System.Runtime.InteropServices;
