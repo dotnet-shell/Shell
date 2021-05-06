@@ -15,7 +15,7 @@ Shell.Prompt = () =>
 {
       if (powerline == null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
       {
-          var powerlineHelpOut=`powerline -h`;
+          var powerlineHelpOut=`which powerline`;
           powerline = !string.IsNullOrWhiteSpace(powerlineHelpOut);
       }
 
