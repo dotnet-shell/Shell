@@ -154,7 +154,7 @@ namespace Dotnet.Shell.UI.Enhanced
                 await Task.Delay(50);
             }
 
-            return listView.SelectedText;
+            return listView.SelectedItem;
         }
 
         public void OnInput(InputEvent inputEvent)
