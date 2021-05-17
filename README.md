@@ -97,7 +97,7 @@ echo $variable$
 ```
 
 ### Useful tips and tricks
-Escaping some input automatically - just type the following and the escaped output will be 
+Escaping input automatically - the following one liner will print escaped C#. Great for copy and pasting into your codebase.
 
 	Console.ReadLine();
 
