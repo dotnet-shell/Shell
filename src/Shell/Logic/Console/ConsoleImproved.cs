@@ -432,6 +432,7 @@ namespace Dotnet.Shell.Logic.Console
 
             UserEnteredText = UserEnteredText.Remove(userPos, UserEnteredText.Length - userPos).Insert(userPos, text);
 
+            LastRawPosition = implementation.CursorLeft;
             implementation.CursorVisible = true;
         }
 

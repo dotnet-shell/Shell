@@ -53,6 +53,21 @@ namespace Dotnet.Shell.Logic.Suggestions
                 {
                     currentSuggestionsList = newSuggestions;
                     currentlySelectedSuggestion = 0;
+
+                    var autoCompleteResults = currentSuggestionsList.Select(x => x.CompletionText);
+
+                    var commonPrefix = new string(autoCompleteResults.First().Substring(0, autoCompleteResults.Min(s => s.Length))
+                        .TakeWhile((c, i) => autoCompleteResults.All(s => s[i] == c)).ToArray());
+
+                    if (!string.IsNullOrWhiteSpace(commonPrefix))
+                    {
+                        var commonIndex = currentSuggestionsList.First(x => x.CompletionText.StartsWith(commonPrefix)).Index;
+                        prompt.ReplaceUserEntryAtPosition(commonPrefix, commonIndex);
+
+                        // because we've changed the onscreen text we need to requery to get a better list of suggestions
+                        await OnTabSuggestCmdAsync(prompt, key);
+                        return;
+                    }
                 }
                 else
                 {
