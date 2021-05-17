@@ -23,11 +23,22 @@ namespace Dotnet.Shell.Logic.Compilation
             {
                 if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
                 {
-                    // we need to check to ensure that this isn't a URL masquerading as a comment
-                    if (trivia.Token.ValueText != ":")
+                    // we need to check to ensure that this isn't a URL masquerading as a comment.
+                    // In .nsh files a single line comment can be 'escaped' by a :
+                    var parent = trivia.Token.ToFullString();
+                    var pos = trivia.Token.Span.Start - 1;
+                    var wasPreviousCharAColon = false;
+                    if (!string.IsNullOrWhiteSpace(parent) && pos > 0 && pos < parent.Length)
                     {
-                        SingleLineComments.Add(trivia.ToFullString());
+                        wasPreviousCharAColon = parent[trivia.Token.Span.Start - 1] == ':';
                     }
+
+                    if (trivia.Token.ValueText == ":" || wasPreviousCharAColon)
+                    {
+                        return;
+                    }
+
+                    SingleLineComments.Add(trivia.ToFullString());
                 }
 
                 Comments.Add(trivia.GetLocation());

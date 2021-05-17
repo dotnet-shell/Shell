@@ -309,5 +309,19 @@ var exec=`cat $testNum$ $testStr$`;";
                 Assert.AreEqual("_= await Shell.ExecuteAsync(\"./hello\");", result);
             }
         }
+
+        [TestMethod]
+        public async Task CommandHandlingCommentRegression_1_Async()
+        {
+            var testString = "wget http://127.0.0.1/test/123/";
+
+            using (var ms = new MemoryStream())
+            {
+                var fakeShell = new Shell();
+                var result = await (new SourceProcessor()).ProcessAsync(testString);
+
+                Assert.AreEqual("_= await Shell.ExecuteAsync(\"wget http://127.0.0.1/test/123/\");", result);
+            }
+        }
     }
 }
