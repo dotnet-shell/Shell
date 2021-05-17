@@ -35,6 +35,11 @@ namespace Dotnet.Shell.Logic.Suggestions
 
         public async Task OnTabSuggestCmdAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
+            await performCompletionAsync(prompt, key);
+        }
+
+        private async Task performCompletionAsync(ConsoleImproved prompt, ConsoleKeyEx key, int depth = 0)
+        {
             if (NeedsNewSuggestions(prompt))
             {
                 textWhichGeneratedSuggestions = prompt.UserEnteredText.ToString();
@@ -44,6 +49,8 @@ namespace Dotnet.Shell.Logic.Suggestions
                 hasTabJustBeenPressedForGroupOfSuggestions = false;
                 currentlySelectedSuggestion = -1;
 
+                // try to get some suggestions, in the future i'd like this to be an API people can register to they can
+                // write their own completion routines
                 var newCmdSuggestions = await cmdSuggestionsEngine.GetSuggestionsAsync(textWhichGeneratedSuggestions, prompt.UserEnteredTextPosition);
                 var newCSharpSuggestions = await cSharpSuggestionsEngine.GetSuggestionsAsync(textWhichGeneratedSuggestions, prompt.UserEnteredTextPosition);
 
@@ -54,18 +61,23 @@ namespace Dotnet.Shell.Logic.Suggestions
                     currentSuggestionsList = newSuggestions;
                     currentlySelectedSuggestion = 0;
 
+                    // We might have a common prefix to all our results, in which case we can fill that in for
+                    // the user so they have less to type. 
                     var autoCompleteResults = currentSuggestionsList.Select(x => x.CompletionText);
 
                     var commonPrefix = new string(autoCompleteResults.First().Substring(0, autoCompleteResults.Min(s => s.Length))
                         .TakeWhile((c, i) => autoCompleteResults.All(s => s[i] == c)).ToArray());
 
-                    if (!string.IsNullOrWhiteSpace(commonPrefix))
+                    // If we have autocompleted something we need to call this function again to update our state
+                    // like if the user had typed the text in themselves
+                    // But we only want to do this once as otherwise we could just keep on auto completing.
+                    if (!string.IsNullOrWhiteSpace(commonPrefix) && depth == 0)
                     {
                         var commonIndex = currentSuggestionsList.First(x => x.CompletionText.StartsWith(commonPrefix)).Index;
                         prompt.ReplaceUserEntryAtPosition(commonPrefix, commonIndex);
 
                         // because we've changed the onscreen text we need to requery to get a better list of suggestions
-                        await OnTabSuggestCmdAsync(prompt, key);
+                        await performCompletionAsync(prompt, key, depth + 1);
                         return;
                     }
                 }
@@ -81,7 +93,8 @@ namespace Dotnet.Shell.Logic.Suggestions
             }
 
             // now to render what we have, but first check if we've got a list in which case a double tab combo will render it
-            if (currentSuggestionsList.Count > 1)
+            // ignore all this if we our just refreshing our state
+            if (depth == 0 && currentSuggestionsList.Count > 1)
             {
                 if (hasTabJustBeenPressedForGroupOfSuggestions)
                 {
@@ -93,7 +106,7 @@ namespace Dotnet.Shell.Logic.Suggestions
                     hasTabJustBeenPressedForGroupOfSuggestions = true;
                 }
             }
-            else if (currentlySelectedSuggestion != -1)
+            else if (depth == 0 && currentlySelectedSuggestion != -1)
             {
                 RenderSuggestion(prompt, currentlySelectedSuggestion);
             }
