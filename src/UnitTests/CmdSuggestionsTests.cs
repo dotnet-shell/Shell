@@ -1,5 +1,6 @@
 ﻿using Dotnet.Shell.API;
 using Dotnet.Shell.Logic.Suggestions;
+using Dotnet.Shell.Logic.Suggestions.Autocompletion;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -213,10 +214,10 @@ namespace UnitTests
 
                 CmdSuggestions s = new CmdSuggestions(fakeShell);
 
-                Assert.AreEqual(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), s.ConvertToAbsolute(basePath + "/.."));
-                Assert.AreEqual(fakeShell.HomeDirectory + Path.DirectorySeparatorChar, s.ConvertToAbsolute("~/"));
-                Assert.AreEqual(fakeShell.WorkingDirectory + Path.DirectorySeparatorChar, s.ConvertToAbsolute("./"));
-                Assert.AreEqual(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "bob"), s.ConvertToAbsolute("~/../bob"));
+                Assert.AreEqual(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), FileAndDirectoryCompletion.ConvertToAbsolute(basePath + "/..", fakeShell));
+                Assert.AreEqual(fakeShell.HomeDirectory + Path.DirectorySeparatorChar, FileAndDirectoryCompletion.ConvertToAbsolute("~/", fakeShell));
+                Assert.AreEqual(fakeShell.WorkingDirectory + Path.DirectorySeparatorChar, FileAndDirectoryCompletion.ConvertToAbsolute("./", fakeShell));
+                Assert.AreEqual(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "bob"), FileAndDirectoryCompletion.ConvertToAbsolute("~/../bob", fakeShell));
             }
         }
 

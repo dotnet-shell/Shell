@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dotnet.Shell.Logic.Suggestions.Autocompletion;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,9 +14,9 @@ namespace Dotnet.Shell.Logic.Suggestions
     internal class CmdSuggestions
     {
         private Task<string[]> CommandsInPath;
-        private Dotnet.Shell.API.Shell shell;
+        private API.Shell shell;
 
-        public CmdSuggestions(Dotnet.Shell.API.Shell shell)
+        public CmdSuggestions(API.Shell shell)
         {
             this.shell = shell;
 
@@ -56,125 +57,29 @@ namespace Dotnet.Shell.Logic.Suggestions
             // first, remove anything that might be part of another command
             // look backward for the follow characters and forget everything before them
             // && ; 
-            sanitizedText = RemoveTextBeforeAndIncluding(sanitizedText, new string[] { "&&", ";" }).Trim();
+            sanitizedText = RemoveTextBeforeAndIncluding(sanitizedText, new string[] { "&&", ";" }).Replace("~", shell.HomeDirectory).Trim();
 
             // c<TAB> -> cd [command]
             // ech<TAB> -> echo [command]
             // cat b<TAB> -> cat bob [file]
             // cat bob; ec[TAB] -> cat bob; echo [file]
 
-            // todo instead of shell.WorkingDirectory we should suggest a path based on what the user typed in
-
-            const string CD_MATCH = "cd ";
-            string INVOKE_IN_DIR = "."+Path.DirectorySeparatorChar;
-
-            if (sanitizedText.StartsWith(CD_MATCH))
+            if (sanitizedText.StartsWith("cd"))
             {
-                var cdSanitizedInput = sanitizedText.Remove(0, CD_MATCH.Length);
-                return Directory.GetDirectories(shell.WorkingDirectory)
-                    .Select(x => Path.GetFileName(x))
-                    .Where(x => x.StartsWith(cdSanitizedInput))
-                    .Select(x => x.Remove(0, cdSanitizedInput.Length))
-                    .Distinct()
-                    .Select(x => new Suggestion() { Index = cursorPos, CompletionText = x+Path.DirectorySeparatorChar, FullText = x + Path.DirectorySeparatorChar })
-                    .ToList();
+                return CdCompletion.GetCompletions(sanitizedText, shell, cursorPos);
             }
-            else if (sanitizedText.StartsWith(INVOKE_IN_DIR))
+            else if (sanitizedText.StartsWith("." + Path.DirectorySeparatorChar))
             {
-                var executableSanitizedInput = sanitizedText.Remove(0, INVOKE_IN_DIR.Length);
-
-                var basePath = shell.WorkingDirectory;
-                var startOfFilename = executableSanitizedInput;
-
-                var lastDir = executableSanitizedInput.LastIndexOf(Path.DirectorySeparatorChar);
-                if (lastDir != -1)
-                {
-                    basePath = Path.Combine(basePath, executableSanitizedInput.Substring(0, lastDir));
-                    startOfFilename = executableSanitizedInput.Remove(0, lastDir+1);
-                }
-
-                return Directory.GetFiles(basePath)
-                    .Select(x => Path.GetFileName(x))
-                    .Where(x => x.StartsWith(startOfFilename))
-                    .Select(x => x.Remove(0, startOfFilename.Length))
-                    // TODO we should check if the executable bit is set here
-                    .Distinct()
-                    .Select(x => new Suggestion() { Index = cursorPos, CompletionText = x, FullText = x })
-                    .ToList();
+                return ExecutableCompletions.GetCompletions(sanitizedText, shell, cursorPos);
             }
             else
             {
-                // if our cursor position is before a space then we are in command completion mode
-                // otherwise we will complete with a filename
-
-                // need to decide if we are going to look for a command, or a file
-                var spacePos = sanitizedText.IndexOf(' ');
-                bool suggestCommand = spacePos == -1 || spacePos >= cursorPos;
-
-                if (suggestCommand)
-                {
 #pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
-                    var matchedEndings = (await CommandsInPath).Where(x => x.StartsWith(sanitizedText)).Select(x => x.Remove(0, sanitizedText.Length)).Distinct().ToList();
+                return await FileAndDirectoryCompletion.GetCompletionsAsync(sanitizedText, shell, cursorPos, CommandsInPath);
 #pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
-
-                    return matchedEndings.ConvertAll(x => new Suggestion() { CompletionText = x, Index = cursorPos, FullText = sanitizedText + x });
-                }
-                else
-                {
-                    // 'command arg1 arg2 /home/asdad/d<TAB>'
-
-                    var fsStart = sanitizedText.LastIndexOf(' ', sanitizedText.Length -1); // todo change to regex and match multiple chars?
-                    var startOfDirOrFile = sanitizedText.Remove(0, fsStart == -1 ? 0 : fsStart +1); // +1 for the space
-
-                    var fullPath = ConvertToAbsolute(startOfDirOrFile);
-
-                    var directoryName = Path.GetDirectoryName(fullPath);
-                    if (directoryName == null)
-                    {
-                        directoryName = Dotnet.Shell.API.Shell.BasePath;
-                    }
-
-                    var toMatch = Path.GetFileName(fullPath);
-
-                    // /ho<TAB>
-                    // ./home<TAB>
-                    // ../<TAB>
-                    // bob/asdads<TAB>
-
-                    // suggest a file or directory
-                    List<string> items = new List<string>();
-                    try
-                    {
-                        items.AddRange(Directory.GetFiles(directoryName).Select(x => Path.GetFileName(x)));
-                    }
-                    catch
-                    {
-
-                    }
-
-                    try
-                    {
-                        items.AddRange(Directory.GetDirectories(directoryName).Select(x => Path.GetFileName(x) + Path.DirectorySeparatorChar));
-                    }
-                    catch
-                    {
-
-                    }
-
-                    return items
-                        .Where(x => string.IsNullOrWhiteSpace(toMatch) || x.StartsWith(toMatch))
-                        .Select(x => x.Remove(0, toMatch.Length))
-                        .Distinct()
-                        .Select(x => new Suggestion() { Index = cursorPos, CompletionText = x, FullText = toMatch + x }).ToList();
-                }
             }
 
             // user defined?
-        }
-
-        internal string ConvertToAbsolute(string partialDir)
-        {
-            return Path.GetFullPath(partialDir.Replace("~", shell.HomeDirectory), shell.WorkingDirectory);
         }
 
         private static string RemoveTextBeforeAndIncluding(string userText, string[] markers)
