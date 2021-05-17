@@ -96,6 +96,12 @@ echo $variable$
 
 ```
 
+### Useful tips and tricks
+Escaping some input automatically - just type the following and the escaped output will be 
+
+	Console.ReadLine();
+
+
 ### Command line help
 ```
   -v, --verbose               (Default: false) Set output to verbose messages.
