@@ -30,7 +30,8 @@ namespace Dotnet.Shell.Logic.Compilation.Commands
             "switch ",
             "case ",
             "default:",
-            "void "
+            "void ",
+            "return ",
         };
 
         internal static string VariableExpansion(string shellCommand)

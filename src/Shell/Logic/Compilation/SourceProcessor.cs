@@ -132,7 +132,7 @@ namespace Dotnet.Shell.Logic.Compilation
         {
             // todo remove any strings in the line
 
-            var csharpEndChars = new char[] { ';', '{', '}', '(', ')' }; 
+            var csharpEndChars = new char[] { ';', '{', '}', '(', ')', ',' }; 
 
             // This regex matches assignment to a variable from a command in the form
             // var x = `ls`;

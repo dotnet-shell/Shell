@@ -1,4 +1,5 @@
 ﻿using Dotnet.Shell.Logic.Execution;
+using Dotnet.Shell.Logic.Suggestions;
 using Dotnet.Shell.UI;
 using System;
 using System.Collections.Generic;
@@ -77,6 +78,14 @@ namespace Dotnet.Shell.API
         /// The command handler.
         /// </value>
         public List<Func<string, string>> CommandHandlers { get; } = new List<Func<string, string>>();
+
+        /// <summary>
+        /// A list of autocompletion handlers which can be used by the user to extend autocompletion results
+        /// </summary>
+        /// <value>
+        /// The autocompletion handlers.
+        /// </value>
+        public List<Func<string, int, Task<IEnumerable<Suggestion>>>> AutoCompletionHandlers { get; } = new List<Func<string, int, Task<IEnumerable<Suggestion>>>>();
 
         /// <summary>
         /// Gets the executing program location.

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -12,20 +13,21 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Dotnet.Shell.Logic.Suggestions
 {
-    internal class Suggestion
-    {
-        public string FullText { get; internal set; }
-        public string CompletionText { get; internal set; }
-        public int Index { get; internal set; }
-    }
-
     internal class CSharpSuggestions
     {
+        private readonly Task<string[]> commandsInPath;
         private readonly IEnumerable<MetadataReference> assemblies;
         private readonly Project project;
+        private readonly Regex PowershellOrBashCommandRegex = new Regex(@"^[\w-]+$", RegexOptions.Compiled);
 
-        public CSharpSuggestions(IEnumerable<MetadataReference> assemblies = null)
+        internal CSharpSuggestions() : this(Task.FromResult(new string[0]))
         {
+
+        }
+
+        public CSharpSuggestions(Task<string[]> commandsInPath, IEnumerable<MetadataReference> assemblies = null)
+        {
+            this.commandsInPath = commandsInPath;
             if (assemblies == null)
             {
                 assemblies = GetAllLoadedAssemblies();
@@ -81,14 +83,28 @@ namespace Dotnet.Shell.Logic.Suggestions
             return references;
         }
 
-        public async Task<List<Suggestion>> GetSuggestionsAsync(string userText, int cursorPos)
+        public async Task<IEnumerable<Suggestion>> GetSuggestionsAsync(string userText, int cursorPos)
         {
             if (cursorPos < 0 || cursorPos > userText.Length)
             {
-                return new List<Suggestion>();
+                return null;
             }
 
             var sanitizedText = userText.Substring(0, cursorPos);
+
+            // try and remove some cases where commands are incorrectly interpretted as C#
+            // IP Addresses for commands like SSH are a good example here
+            var possibleCommand = sanitizedText.Split(' ').FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(possibleCommand) && PowershellOrBashCommandRegex.IsMatch(possibleCommand))
+            {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                var cmds = await commandsInPath;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
+                if (cmds.Contains(possibleCommand))
+                {
+                    return null;
+                }
+            }
 
             var id = DocumentId.CreateNewId(project.Id);
 
@@ -98,7 +114,7 @@ namespace Dotnet.Shell.Logic.Suggestions
             return await GetCompletionResultsAsync(document, sanitizedText, sanitizedText.Length);
         }
 
-        private async Task<List<Suggestion>> GetCompletionResultsAsync(Document document, string sanitizedText, int position)
+        private async Task<IEnumerable<Suggestion>> GetCompletionResultsAsync(Document document, string sanitizedText, int position)
         {
             var ret = new List<Suggestion>();
 

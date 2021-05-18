@@ -13,39 +13,22 @@ namespace Dotnet.Shell.Logic.Suggestions
 {
     internal class CmdSuggestions
     {
-        private Task<string[]> CommandsInPath;
-        private API.Shell shell;
+        private readonly Task<string[]> commandsInPath;
+        private readonly API.Shell shell;
 
-        public CmdSuggestions(API.Shell shell)
+        internal CmdSuggestions(API.Shell shell)
         {
             this.shell = shell;
-
-            CommandsInPath = Task.Run(() =>
-            {
-                var ret = new List<string>();
-
-                ret.AddRange(shell.cmdAliases.Keys);
-                ret.AddRange(shell.csAliases.Keys);
-
-                foreach (var path in shell.Paths)
-                {
-                    ret.AddRange(Directory.GetFiles(path).Select(x=> x.Remove(0, path.Length+1)));
-                    // todo check executable bit
-                }
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    const string EXE = ".exe";
-                    return ret.Where(x => x.EndsWith(EXE)).Select(x => x.Substring(0, x.Length - EXE.Length)).OrderBy(x => x.Length).ToArray();
-                }
-                else
-                {
-                    return ret.OrderBy(x => x.Length).ToArray();
-                }
-            });
+            this.commandsInPath = Task.FromResult(new string[0]);
         }
 
-        public async Task<List<Suggestion>> GetSuggestionsAsync(string userText, int cursorPos)
+        public CmdSuggestions(API.Shell shell, Task<string[]> commandsInPath)
+        {
+            this.shell = shell;
+            this.commandsInPath = commandsInPath;
+        }
+
+        public async Task<IEnumerable<Suggestion>> GetSuggestionsAsync(string userText, int cursorPos)
         {
             if (cursorPos < 0 || cursorPos > userText.Length)
             {
@@ -75,7 +58,7 @@ namespace Dotnet.Shell.Logic.Suggestions
             else
             {
 #pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
-                return await FileAndDirectoryCompletion.GetCompletionsAsync(sanitizedText, shell, cursorPos, CommandsInPath);
+                return await FileAndDirectoryCompletion.GetCompletionsAsync(sanitizedText, shell, cursorPos, commandsInPath);
 #pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
             }
 

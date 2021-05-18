@@ -5,18 +5,53 @@ using System.Text;
 using System;
 using System.Runtime.CompilerServices;
 using Dotnet.Shell.Logic.Console;
+using Dotnet.Shell.UI;
+using System.IO;
+using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("UnitTests")]
 
 namespace Dotnet.Shell.Logic.Suggestions
 {
+    /// <summary>
+    /// Class which refines an auto suggestion result
+    /// </summary>
+    public class Suggestion
+    {
+        /// <summary>
+        /// Gets or sets the full text. This might be something like WriteLine when Console.Wri was typed
+        /// </summary>
+        /// <value>
+        /// The full text.
+        /// </value>
+        public ColorString FullText { get; set; }
+
+        /// <summary>
+        /// Gets or sets the completion text. This is the substring to be added to the current command line input text.
+        /// This might be something like teLine when Console.Wri was typed
+        /// </summary>
+        /// <value>
+        /// The completion text.
+        /// </value>
+        public string CompletionText { get; set; }
+
+        /// <summary>
+        /// Gets or sets the index. This is the position the new text should be inserted at
+        /// </summary>
+        /// <value>
+        /// The index.
+        /// </value>
+        public int Index { get; set; }
+    }
+
     class Suggestions
     {
-        private CmdSuggestions cmdSuggestionsEngine;
-        private CSharpSuggestions cSharpSuggestionsEngine;
+        private readonly CmdSuggestions cmdSuggestionsEngine;
+        private readonly CSharpSuggestions cSharpSuggestionsEngine;
+        private readonly Task<string[]> commandsInPath;
+
         private string textWhichGeneratedSuggestions = string.Empty;
         private int textPosWhichGeneratedSuggestions = -1;
-
         private List<Suggestion> currentSuggestionsList = new List<Suggestion>();
         private int currentlySelectedSuggestion = -1;
         private bool hasTabJustBeenPressedForGroupOfSuggestions = false;
@@ -27,10 +62,34 @@ namespace Dotnet.Shell.Logic.Suggestions
             currentlySelectedSuggestion == -1 ||
             currentSuggestionsList.Count == 0;
 
-        public Suggestions(Dotnet.Shell.API.Shell shell)
+        public Suggestions(API.Shell shell)
         {
-            cmdSuggestionsEngine = new CmdSuggestions(shell);
-            cSharpSuggestionsEngine = new CSharpSuggestions();
+            commandsInPath = Task.Run(() =>
+            {
+                var ret = new List<string>();
+
+                ret.AddRange(shell.cmdAliases.Keys);
+                ret.AddRange(shell.csAliases.Keys);
+
+                foreach (var path in shell.Paths)
+                {
+                    ret.AddRange(Directory.GetFiles(path).Select(x => x.Remove(0, path.Length + 1)));
+                    // todo check executable bit
+                }
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    const string EXE = ".exe";
+                    return ret.Where(x => x.EndsWith(EXE)).Select(x => x.Substring(0, x.Length - EXE.Length)).OrderBy(x => x.Length).ToArray();
+                }
+                else
+                {
+                    return ret.OrderBy(x => x.Length).ToArray();
+                }
+            });
+
+            cmdSuggestionsEngine = new CmdSuggestions(shell, commandsInPath);
+            cSharpSuggestionsEngine = new CSharpSuggestions(commandsInPath);
         }
 
         public async Task OnTabSuggestCmdAsync(ConsoleImproved prompt, ConsoleKeyEx key)
@@ -51,10 +110,14 @@ namespace Dotnet.Shell.Logic.Suggestions
 
                 // try to get some suggestions, in the future i'd like this to be an API people can register to they can
                 // write their own completion routines
-                var newCmdSuggestions = await cmdSuggestionsEngine.GetSuggestionsAsync(textWhichGeneratedSuggestions, prompt.UserEnteredTextPosition);
-                var newCSharpSuggestions = await cSharpSuggestionsEngine.GetSuggestionsAsync(textWhichGeneratedSuggestions, prompt.UserEnteredTextPosition);
+                List<Task<IEnumerable<Suggestion>>> suggestions2 = new List<Task<IEnumerable<Suggestion>>>();
+                suggestions2.Add(cmdSuggestionsEngine.GetSuggestionsAsync(textWhichGeneratedSuggestions, prompt.UserEnteredTextPosition));
+                suggestions2.Add(cSharpSuggestionsEngine.GetSuggestionsAsync(textWhichGeneratedSuggestions, prompt.UserEnteredTextPosition));
+                suggestions2.AddRange(prompt.Shell.AutoCompletionHandlers.Select(x => x(textWhichGeneratedSuggestions, prompt.UserEnteredTextPosition)));
 
-                var newSuggestions = newCmdSuggestions.Union(newCSharpSuggestions).ToList();
+                await Task.WhenAll(suggestions2);
+
+                var newSuggestions = suggestions2.Select(x => x.Result).Where(x => x != null).SelectMany(x => x).ToList();
 
                 if (newSuggestions.Count != 0)
                 {
@@ -166,7 +229,7 @@ namespace Dotnet.Shell.Logic.Suggestions
                     b.Clear();
                 }
 
-                b.Append(suggestion.FullText + new string(' ', longestStringLength - suggestion.FullText.Length));
+                b.Append(suggestion.FullText.TextWithFormattingCharacters + new string(' ', longestStringLength - suggestion.FullText.Length));
                 writtenEntries++;
             }
 

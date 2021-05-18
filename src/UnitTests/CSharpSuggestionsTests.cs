@@ -1,5 +1,6 @@
 ﻿using Dotnet.Shell.Logic.Suggestions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace UnitTests
@@ -12,7 +13,7 @@ namespace UnitTests
         {
             CSharpSuggestions cSharpSuggestions = new CSharpSuggestions();
             var results = await cSharpSuggestions.GetSuggestionsAsync(string.Empty, 0);
-            Assert.AreEqual(0, results.Count);
+            Assert.AreEqual(0, results.Count());
         }
 
         [TestMethod]
@@ -24,7 +25,7 @@ namespace UnitTests
 
             var results = await cSharpSuggestions.GetSuggestionsAsync(text, text.Length);
 
-            Assert.AreEqual(1, results.Count);
+            Assert.AreEqual(1, results.Count());
         }
 
         [TestMethod]
@@ -36,7 +37,7 @@ namespace UnitTests
 
             var results = await cSharpSuggestions.GetSuggestionsAsync(text, text.Length);
 
-            Assert.AreEqual(22, results.Count);
+            Assert.AreEqual(22, results.Count());
         }
     }
 }
