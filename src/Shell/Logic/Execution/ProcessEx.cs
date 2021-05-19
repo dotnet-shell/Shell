@@ -128,7 +128,7 @@ namespace Dotnet.Shell.Logic.Execution
             p.Refresh();
             if (!p.HasExited)
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     OS.Exec("kill -STOP " + p.Id);
                 }
@@ -144,7 +144,7 @@ namespace Dotnet.Shell.Logic.Execution
         {
             // todo replace with library call, this is lame
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 OS.Exec("kill -CONT " + p.Id);
             }

@@ -29,7 +29,7 @@ namespace Dotnet.Shell.API
         {
             get
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     return "/";
                 }

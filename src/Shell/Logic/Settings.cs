@@ -40,7 +40,7 @@ namespace Dotnet.Shell.Logic
         {
             if (!AdditionalHistoryFiles.Any())
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     this.AdditionalHistoryFiles = new List<string>() { Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".bash_history") };
             }
@@ -130,7 +130,7 @@ namespace Dotnet.Shell.Logic
         /// The sub shell.
         /// </value>
         [Option('s', "subShell", Required = false, HelpText = "Path to the sub shell to invoke commands with")]
-        public string SubShell { get; set; } = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "/bin/bash" : "powershell.exe";
+        public string SubShell { get; set; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "powershell.exe" : "/bin/bash";
 
         /// <summary>
         /// Gets the sub shell arguments format.
@@ -139,7 +139,7 @@ namespace Dotnet.Shell.Logic
         /// The sub shell arguments format.
         /// </value>
         [Option('a', "subShellArgs", Required = false, HelpText = "Arguments to the provided to the SubShell, this MUST include the format specifier {0}")]
-        public string SubShellArgumentsFormat { get; set; } = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "-c \"{0}\"" : "-NoProfile -ExecutionPolicy unrestricted -Command {0}";
+        public string SubShellArgumentsFormat { get; set; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "-NoProfile -ExecutionPolicy unrestricted -Command {0}" : "-c \"{0}\"";
 
         /// <summary>
         /// Gets the additional usings.

@@ -30,7 +30,7 @@ namespace Dotnet.Shell.Logic.Console
 
         public Task SaveAsync()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var p = OS.Exec("tput smcup"); // todo
                 return p.WaitForExitAsync();
@@ -44,7 +44,7 @@ namespace Dotnet.Shell.Logic.Console
 
         public Task RestoreAsync()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var p = OS.Exec("tput rmcup"); // todo
                 return p.WaitForExitAsync();

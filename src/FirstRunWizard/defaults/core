@@ -13,7 +13,7 @@ bool? powerline = null;
 Shell.Prompt = () => 
 #endregion
 {
-      if (powerline == null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+      if (powerline == null && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
       {
           var powerlineHelpOut=`which powerline`;
           powerline = !string.IsNullOrWhiteSpace(powerlineHelpOut);
@@ -31,7 +31,7 @@ Shell.Prompt = () =>
 };
 
 // Add paths to Shell environment
-if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
     Shell.Paths.Add("/bin");
     Shell.Paths.Add("/sbin");
@@ -78,7 +78,7 @@ if (File.Exists(aliasesFile))
     #load $aliasesFile$
 }
 
-if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
     Console.WriteLine(new ColorString("This OS is currently in beta!", Color.Red).TextWithFormattingCharacters);
 }

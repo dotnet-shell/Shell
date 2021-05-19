@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 [assembly: InternalsVisibleTo("UnitTests")]
@@ -77,9 +78,23 @@ namespace Dotnet.Shell.Logic.Suggestions.Autocompletion
             }
         }
 
-        internal static string ConvertToAbsolute(string partialDir, API.Shell shell)
+        internal static string ConvertToAbsolute(string dir, API.Shell shell)
         {
-            return Path.GetFullPath(partialDir.Replace("~", shell.HomeDirectory), shell.WorkingDirectory);
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                dir = dir.Replace("~", shell.HomeDirectory);
+
+                if (!dir.StartsWith(Path.DirectorySeparatorChar))
+                {
+                    dir = Path.Combine(shell.WorkingDirectory, dir);
+                }
+
+                return dir;
+            }
+            else
+            {
+                return Path.GetFullPath(dir.Replace("~", shell.HomeDirectory), shell.WorkingDirectory);
+            }
         }
     }
 }

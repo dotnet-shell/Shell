@@ -145,7 +145,7 @@ namespace Dotnet.Shell
                     executor?.Shell?.ForegroundProcess?.SignalTerminate();
                 };
 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     var ctrlZHandler = new Thread(delegate ()
                     {

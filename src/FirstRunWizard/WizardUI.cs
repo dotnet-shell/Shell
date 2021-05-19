@@ -187,7 +187,7 @@ Settings file such as in the following snippet:
                 }
             }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 if (!IsSupportedTmuxVersionInstalled())
                 {
@@ -207,7 +207,7 @@ Settings file such as in the following snippet:
                 Console.WriteLine("Please see https://github.com/tmux/tmux");
 
                 Console.WriteLine("Do you want to stop and install tmux? (Most people don't have the latest version of tmux so its OK to say N here)");
-                if (!GetYesOrNo())
+                if (GetYesOrNo())
                 {
                     return false;
                 }
@@ -218,7 +218,7 @@ Settings file such as in the following snippet:
 
         private bool DoesTmuxSupportPopups()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var version = RunAndGetStdOut("tmux", "-V");
                 return version != null && version.StartsWith("tmux 3.2");
@@ -228,7 +228,7 @@ Settings file such as in the following snippet:
 
         public bool IsWSL()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 foreach (var variable in Environment.GetEnvironmentVariables().Keys)
                 {
@@ -245,7 +245,7 @@ Settings file such as in the following snippet:
 
         public bool IsWindowsTerminal()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 foreach (var variable in Environment.GetEnvironmentVariables().Keys)
                 {
