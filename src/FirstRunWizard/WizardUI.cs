@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -47,6 +47,7 @@ namespace FirstRunWizard
                     if (!Directory.Exists(dirName))
                     {
                         Directory.CreateDirectory(dirName);
+                        Directory.CreateDirectory(Path.Combine(dirName, "profiles"));
                     }
                     Console.WriteLine();
 
