@@ -115,13 +115,12 @@ namespace ConsoleGUI.Controls
 			var totalNumberOfItemsPossibleOnScreen = _vscrollp.Size.Height;
 			if ((inputEvent.Key.Key == ScrollDownKey && _selectedIndex % totalNumberOfItemsPossibleOnScreen == 0) || (inputEvent.Key.Key == ScrollUpKey && _selectedIndex < _vscrollp.Top))
 			{
+				inputEvent.Handled = true;
 				_vscrollp.Top = inputEvent.Key.Key == ScrollDownKey ?
 					_vscrollp.Top + totalNumberOfItemsPossibleOnScreen :
 					_vscrollp.Top - totalNumberOfItemsPossibleOnScreen;
 
 			}
-
-			inputEvent.Handled = true;
 		}
 
 		private void UpdateColor(int? oldRow, int? newRow)
