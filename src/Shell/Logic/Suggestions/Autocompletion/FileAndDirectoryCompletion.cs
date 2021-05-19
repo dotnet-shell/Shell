@@ -89,7 +89,7 @@ namespace Dotnet.Shell.Logic.Suggestions.Autocompletion
                     dir = Path.Combine(shell.WorkingDirectory, dir);
                 }
 
-                return dir;
+                return Path.GetFullPath(dir);
             }
             else
             {

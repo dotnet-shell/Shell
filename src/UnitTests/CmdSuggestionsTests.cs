@@ -16,7 +16,7 @@ namespace UnitTests
     {
         private string basePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "TestFiles");
 
-        private Task<string[]> fakeCommandsTask()
+        private Task<string[]> fakeCommandsAsync()
         {
             return Task.FromResult(
                 new string[] {
@@ -34,7 +34,7 @@ namespace UnitTests
             using (var ms = new MemoryStream())
             {
                 var fakeShell = new Shell();
-                var s = new CmdSuggestions(fakeShell, fakeCommandsTask());
+                var s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
             }
         }
 
@@ -46,7 +46,7 @@ namespace UnitTests
                 var fakeShell = new Shell();
                 fakeShell.Paths.Add(basePath);
 
-                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsTask());
+                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
                 var result = await s.GetSuggestionsAsync("a", 1);
 
                 Assert.AreEqual(1, result.Count());
@@ -69,7 +69,7 @@ namespace UnitTests
                 var fakeShell = new Shell();
                 fakeShell.Paths.Add(basePath);
 
-                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsTask());
+                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
                 var result = await s.GetSuggestionsAsync("x", 1);
 
                 Assert.AreEqual(0, result.Count());
@@ -84,7 +84,7 @@ namespace UnitTests
                 var fakeShell = new Shell();
                 fakeShell.Paths.Add(basePath);
 
-                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsTask());
+                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
                 var results = await s.GetSuggestionsAsync("test", 4);
 
                 Assert.AreEqual(2, results.Count());
@@ -105,7 +105,7 @@ namespace UnitTests
                 var fakeShell = new Shell();
                 fakeShell.Paths.Add(basePath);
 
-                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsTask());
+                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
                 var result = await s.GetSuggestionsAsync("echo a; b; echo c; echo a", 9);
 
                 Assert.AreEqual(1, result.Count());
@@ -122,7 +122,7 @@ namespace UnitTests
                 var fakeShell = new Shell();
                 fakeShell.ChangeDir( Path.GetFullPath(basePath + "/../") );
 
-                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsTask());
+                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
                 var result = await s.GetSuggestionsAsync("cd T", 4);
 
                 Assert.AreEqual(1, result.Count());
@@ -139,7 +139,7 @@ namespace UnitTests
                 var fakeShell = new Shell();
                 fakeShell.ChangeDir(Path.GetFullPath(basePath + "/../"));
 
-                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsTask());
+                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
                 var result = await s.GetSuggestionsAsync("cd X", 4);
 
                 Assert.AreEqual(0, result.Count());
@@ -154,7 +154,7 @@ namespace UnitTests
                 var fakeShell = new Shell();
                 fakeShell.ChangeDir(Path.GetFullPath(basePath + "/../"));
 
-                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsTask());
+                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
                 var result = await s.GetSuggestionsAsync("echo A; cd T", 12);
                 Assert.AreEqual(1, result.Count());
                 Assert.AreEqual("estFiles"+ Path.DirectorySeparatorChar, result.ElementAt(0).CompletionText);
@@ -188,7 +188,7 @@ namespace UnitTests
                 var fakeShell = new Shell();
                 fakeShell.ChangeDir(Path.GetFullPath(basePath + "/../"));
 
-                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsTask());
+                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
                 var result = await s.GetSuggestionsAsync("cat TestFi", 10);
 
                 Assert.AreEqual(1, result.Count());
@@ -204,7 +204,7 @@ namespace UnitTests
                 fakeShell.HomeDirectory = basePath;
                 fakeShell.WorkingDirectory = basePath;
 
-                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsTask());
+                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
 
                 Assert.AreEqual(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), FileAndDirectoryCompletion.ConvertToAbsolute(basePath + "/..", fakeShell));
                 Assert.AreEqual(fakeShell.HomeDirectory + Path.DirectorySeparatorChar, FileAndDirectoryCompletion.ConvertToAbsolute("~/", fakeShell));
@@ -222,7 +222,7 @@ namespace UnitTests
                 fakeShell.HomeDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 fakeShell.WorkingDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsTask());
+                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
                 var result = await s.GetSuggestionsAsync("cat TestFiles/nsh", 17);
 
                 Assert.AreEqual(1, result.Count());
@@ -240,7 +240,7 @@ namespace UnitTests
                 fakeShell.HomeDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 fakeShell.WorkingDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsTask());
+                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
                 var result = await s.GetSuggestionsAsync("."+Path.DirectorySeparatorChar+"TestFiles"+Path.DirectorySeparatorChar+"nshScr", 18);
 
                 Assert.AreEqual(1, result.Count());
@@ -258,7 +258,7 @@ namespace UnitTests
                 fakeShell.HomeDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 fakeShell.WorkingDirectory = Path.Combine( Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "TestFiles");
 
-                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsTask());
+                CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
                 var result = await s.GetSuggestionsAsync("." + Path.DirectorySeparatorChar + "nshScr", 8);
 
                 Assert.AreEqual(1, result.Count());
