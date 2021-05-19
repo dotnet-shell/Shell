@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime;
 using Mono.Unix;
 using Mono.Unix.Native;
 using System.Runtime.InteropServices;
@@ -27,6 +28,13 @@ namespace Dotnet.Shell
 
         static async Task Main(string[] args)
         {
+            var configDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nsh");
+            if (Directory.Exists(configDir))
+            {
+                ProfileOptimization.SetProfileRoot(Path.Combine(configDir, "profiles"));
+            }
+            ProfileOptimization.StartProfile("Startup.Profile");
+
             Parser.Default.ParseArguments<Settings>(args).WithParsed<Settings>(o => Settings.Default = o);
 
             if (Settings.Default == null)
@@ -53,6 +61,7 @@ namespace Dotnet.Shell
 
             if (Settings.Default.HistoryMode)
             {
+                ProfileOptimization.StartProfile("History.Profile");
                 try
                 {
                     var historyTask = OS.GetOSHistoryAsync();
@@ -78,6 +87,7 @@ namespace Dotnet.Shell
 
                 if (fileArguments.Any())
                 {
+                    ProfileOptimization.StartProfile("Script.Profile");
                     var script = fileArguments.First();
                     List<string> scriptArgs = new List<string>();
                     bool startCollecting = false;
@@ -101,6 +111,7 @@ namespace Dotnet.Shell
                 }
                 else
                 {
+                    ProfileOptimization.StartProfile("Interactive.Profile");
                     await StartInteractiveModeAsync(Settings.Default.UX);
                 }     
             }
