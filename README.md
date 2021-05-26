@@ -38,7 +38,7 @@ First you need to [install the .NET5. runtime.](https://docs.microsoft.com/en-gb
 	dotnet --info
 If you see a lot of .NET version information that starts with 5.0 then you have a working copy of the .NET runtime. dotnet-shell is a dotnet tool. It is installed by:
 
-	dotnet tool install dotnet-shell
+	dotnet tool install -g dotnet-shell
 
 | OS      | Status       |
 |---------|--------------|
