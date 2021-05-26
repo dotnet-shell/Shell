@@ -12,6 +12,10 @@
 dotnet-shell is a replacement for your *Unix shell (bash,sh,dash etc) that brings C#/Dotnet to the command line in a familiar and Bash-like syntax. It combines the best of C# with the shell commands you already know. If you've used [dotnetscript](https://github.com/filipw/dotnet-script)
 or [nake](https://github.com/yevhen/Nake/blob/master/README.md) you will feel right at home. Best of all it is easy to take your existing Unix shell scripts and port them to dotnet-shell format.
 
+<p align="center">
+  <img width="706" src="https://dotnet-shell.github.io/demo.gif">
+</p>
+
 dotnet-shell acts as a meta shell that sits on top of your system shell (Bash/PowerShell etc). It replaces hard to remember loop/if syntax with C# and enables you to use the shell constructs that you know and can't unlearn! It works in both interactive and script modes allowing you to build variables and arguments in C# and use them easily in shell commands.
 
 It is fully featured, supporting:
