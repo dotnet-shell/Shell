@@ -58,7 +58,7 @@ namespace Dotnet.Shell.Logic.Compilation.Commands
         {
             // matches what basically is a pretty weak regex for linux style commands
             // and does not start with a reserved word
-            var regex = @"^[\w]+([ ].+)*(?<!;)$";
+            var regex = @"^\w+-*\w+([ ].+)*(?<!;)$";
             if (line.StartsWith("./") || Regex.IsMatch(line, regex))
             {
                 return !ShellCommandUtilities.ReservedWords.Any(word => line.StartsWith(word));

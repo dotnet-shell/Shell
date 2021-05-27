@@ -98,7 +98,7 @@ namespace Dotnet.Shell.UI.Standard
             if (searchHistory.HasValue && !string.IsNullOrWhiteSpace(match))
             {
                 var notMatchedString = new StringBuilder();
-                var matchingPositions = FindAllIndexesOf(match, searchHistory.Value.Term);
+                var matchingPositions = FindAllIndexesOf(match.ToLowerInvariant(), searchHistory.Value.Term.ToLowerInvariant());
                 for (int posInStr = 0; searchHistory != null && posInStr < match.Length; posInStr++)
                 {
                     if (matchingPositions.Contains(posInStr))

@@ -85,14 +85,14 @@ namespace UnitTests
                 fakeShell.Paths.Add(basePath);
 
                 CmdSuggestions s = new CmdSuggestions(fakeShell, fakeCommandsAsync());
-                var results = await s.GetSuggestionsAsync("test", 4);
+                var results = await s.GetSuggestionsAsync("testcm", 6);
 
                 Assert.AreEqual(2, results.Count());
 
                 foreach (var result in results)
                 {
-                    Assert.IsTrue(result.CompletionText == "cmdc" || result.CompletionText == "cmdd");
-                    Assert.AreEqual(4, result.Index);
+                    Assert.IsTrue(result.CompletionText == "dc" || result.CompletionText == "dd");
+                    Assert.AreEqual(6, result.Index);
                 }
             }
         }

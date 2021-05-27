@@ -25,7 +25,7 @@ namespace Dotnet.Shell.Logic.Suggestions.Autocompletion
                 startOfFilename = executableSanitizedInput.Remove(0, lastDir + 1);
             }
 
-            return Directory.GetFiles(basePath)
+            return GetFilesAndFolders(basePath)
                 .Select(x => Path.GetFileName(x))
                 .Where(x => x.StartsWith(startOfFilename))
                 .Select(x => x.Remove(0, startOfFilename.Length))
@@ -33,6 +33,31 @@ namespace Dotnet.Shell.Logic.Suggestions.Autocompletion
                 .Distinct()
                 .Select(x => new Suggestion() { Index = cursorPos, CompletionText = x, FullText = x })
                 .ToList();
+        }
+
+        private static IEnumerable<string> GetFilesAndFolders(string basePath)
+        {
+            List<string> ret = new List<string>();
+
+            try
+            {
+                ret.AddRange(Directory.GetFiles(basePath));
+            }
+            catch
+            {
+
+            }
+
+            try
+            {
+                ret.AddRange(Directory.GetDirectories(basePath));
+            }
+            catch
+            {
+
+            }
+
+            return ret;
         }
     }
 }

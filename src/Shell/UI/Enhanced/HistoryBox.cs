@@ -147,7 +147,7 @@ namespace Dotnet.Shell.UI.Enhanced
                 if (updateSearch)
                 {
                     updateSearch = false;
-                    var searchResults = historyToDisplay.Where(x => x.Contains(searchBox.Text)).ToList();
+                    var searchResults = historyToDisplay.Where(x => x.ToLowerInvariant().Contains(searchBox.Text.ToLowerInvariant())).ToList();
                     listView.Items = searchResults;
                 }
 
