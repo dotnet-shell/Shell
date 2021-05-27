@@ -356,6 +356,7 @@ namespace Dotnet.Shell.Logic.Console
         {
             implementation.CursorLeft = 0;
             CursorPosition = 0;
+            totalExtraLinesCreated = 0;
 
             var prompt = Shell.Prompt();
             Write(prompt);
