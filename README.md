@@ -44,6 +44,7 @@ If you see a lot of .NET version information that starts with 5.0 then you have 
 |---------|--------------|
 | Linux   | Stable       |
 | Windows | Experimental |
+| Max     | Should work *untested* |
 | BSD     | Unsupported  |
 
 ## Syntax cheatsheet
