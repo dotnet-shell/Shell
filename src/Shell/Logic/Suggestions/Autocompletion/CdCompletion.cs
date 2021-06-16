@@ -15,6 +15,16 @@ namespace Dotnet.Shell.Logic.Suggestions.Autocompletion
 
             bool isAbsolutePath = cdSanitizedInput.StartsWith(Path.DirectorySeparatorChar) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && cdSanitizedInput.Length >= 3 && cdSanitizedInput[1] == ':';
 
+            if ((isAbsolutePath && Directory.Exists(cdSanitizedInput) && !cdSanitizedInput.EndsWith(Path.DirectorySeparatorChar)) ||
+                (Directory.Exists(Path.Combine(shell.WorkingDirectory, cdSanitizedInput)) && !cdSanitizedInput.EndsWith(Path.DirectorySeparatorChar)))
+            {
+                // Directories must end with a slash
+                return new List<Suggestion>()
+                {
+                    new Suggestion() { Index = cursorPos, CompletionText = Path.DirectorySeparatorChar.ToString(), FullText = cdSanitizedInput + Path.DirectorySeparatorChar }
+                };
+            }
+
             if (string.IsNullOrWhiteSpace(cdSanitizedInput) || (isAbsolutePath && Directory.Exists(cdSanitizedInput)))
             {
                 return
@@ -28,15 +38,6 @@ namespace Dotnet.Shell.Logic.Suggestions.Autocompletion
                     TryGetDirectories(Path.GetDirectoryName(cdSanitizedInput))
                     .Where(x => x.StartsWith(cdSanitizedInput))
                     .Select(x => x.Remove(0, cdSanitizedInput.Length))
-                    .Distinct()
-                    .Select(x => new Suggestion() { Index = cursorPos, CompletionText = x + Path.DirectorySeparatorChar, FullText = cdSanitizedInput + x + Path.DirectorySeparatorChar })
-                    .ToList();
-            }
-            else if (cdSanitizedInput.EndsWith(Path.DirectorySeparatorChar) || cdSanitizedInput.StartsWith(".." + Path.DirectorySeparatorChar) || cdSanitizedInput.StartsWith("." + Path.DirectorySeparatorChar)) // sub directories
-            {
-                return
-                    TryGetDirectories(Path.Combine(shell.WorkingDirectory, cdSanitizedInput))
-                    .Select(x => Path.GetFileName(x))
                     .Distinct()
                     .Select(x => new Suggestion() { Index = cursorPos, CompletionText = x + Path.DirectorySeparatorChar, FullText = cdSanitizedInput + x + Path.DirectorySeparatorChar })
                     .ToList();
