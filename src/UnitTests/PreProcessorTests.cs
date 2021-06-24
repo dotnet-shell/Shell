@@ -325,6 +325,20 @@ var exec=`cat $testNum$ $testStr$`;";
         }
 
         [TestMethod]
+        public async Task CommandHandlingRegression_2_Async()
+        {
+            var testString = "wget https://svn.nmap.org/nmap/scripts/test.nse";
+
+            using (var ms = new MemoryStream())
+            {
+                var fakeShell = new Shell();
+                var result = await (new SourceProcessor()).ProcessAsync(testString);
+
+                Assert.AreEqual("_= await Shell.ExecuteAsync(\"wget https://svn.nmap.org/nmap/scripts/test.nse\");", result);
+            }
+        }
+
+        [TestMethod]
         public async Task CommandHandlingRegexMatchRegression_1_Async()
         {
             var testString = "ssh-keygen -f /home/test/.ssh/known_hosts -R 10.0.0.0";

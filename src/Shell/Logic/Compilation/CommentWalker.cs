@@ -25,15 +25,10 @@ namespace Dotnet.Shell.Logic.Compilation
                 {
                     // we need to check to ensure that this isn't a URL masquerading as a comment.
                     // In .nsh files a single line comment can be 'escaped' by a :
-                    var parent = trivia.Token.ToFullString();
-                    var pos = trivia.Token.Span.Start - 1;
-                    var wasPreviousCharAColon = false;
-                    if (!string.IsNullOrWhiteSpace(parent) && pos > 0 && pos < parent.Length)
-                    {
-                        wasPreviousCharAColon = parent[trivia.Token.Span.Start - 1] == ':';
-                    }
+                    var preText = trivia.SyntaxTree.GetText();
+                    var startOfPossibleComment = preText.ToString().Substring(0, trivia.SpanStart);
 
-                    if (trivia.Token.ValueText == ":" || wasPreviousCharAColon)
+                    if (trivia.Token.ValueText == ":" || startOfPossibleComment.EndsWith(":"))
                     {
                         return;
                     }
