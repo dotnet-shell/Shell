@@ -23,8 +23,8 @@ namespace Dotnet.Shell
 {
     class Program
     {
-        private static IConsole consoleInterface = new DotNetConsole();
-        private static ErrorDisplay errorHelper = new ErrorDisplay(consoleInterface);
+        private static readonly IConsole consoleInterface = new DotNetConsole();
+        private static readonly ErrorDisplay errorHelper = new(consoleInterface);
 
         static async Task Main(string[] args)
         {
@@ -45,7 +45,7 @@ namespace Dotnet.Shell
 
             if (Settings.Default.EarlyDebuggerAttach)
             {
-                Console.WriteLine("Now connect your debugger to "+ Process.GetCurrentProcess().Id);
+                Console.WriteLine("Now connect your debugger to "+ Environment.ProcessId);
                 while (!Debugger.IsAttached)
                 {
                     Console.Write(".");
@@ -89,7 +89,7 @@ namespace Dotnet.Shell
                 {
                     ProfileOptimization.StartProfile("Script.Profile");
                     var script = fileArguments.First();
-                    List<string> scriptArgs = new List<string>();
+                    List<string> scriptArgs = new();
                     bool startCollecting = false;
                     for (int x = 0; x < args.Length; x++)
                     {
@@ -199,7 +199,7 @@ namespace Dotnet.Shell
                 var console = new ConsoleImproved(consoleInterface, executor.Shell);
 
                 var searchFunction = ux == UserExperience.Classic ? HistorySearch.OnSearchHistory(consoleInterface, executor.Shell) :
-                                     ux == UserExperience.Enhanced ? HistoryBox.OnSearchHistory(consoleInterface, executor.Shell) : HistoryBox.OnSearchHistoryTmux(consoleInterface, executor.Shell);
+                                     ux == UserExperience.Enhanced ? HistoryBox.OnSearchHistory(consoleInterface) : HistoryBox.OnSearchHistoryTmux();
 
                 var suggestor = new Logic.Suggestions.Suggestions(executor.Shell);
 

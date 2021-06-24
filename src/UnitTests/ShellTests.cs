@@ -47,8 +47,10 @@ namespace UnitTests
 
             using (var ms = new MemoryStream())
             {
-                var fakeShell = new Shell();
-                fakeShell.Error = (msg) => { Assert.IsTrue(!string.IsNullOrWhiteSpace(msg)); errorCount++; };
+                var fakeShell = new Shell
+                {
+                    Error = (msg) => { Assert.IsTrue(!string.IsNullOrWhiteSpace(msg)); errorCount++; }
+                };
                 fakeShell.AddCSAlias("echo", "Console.WriteLine(\"{0}\");");
                 fakeShell.AddCSAlias("echo", "sdfsdfsdf");
 

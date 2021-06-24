@@ -9,13 +9,13 @@ namespace ConsoleGUI.Controls
 {
 	public class ListView : SimpleControl, IInputListener
 	{
-		private Color _textColor = Color.White;
+		private readonly Color _textColor = Color.White;
 		public Color TextColor
 		{
 			get => _textColor;
 		}
 
-		private Color _selectedTextColor = Color.Black;
+		private readonly Color _selectedTextColor = Color.Black;
 		public Color SelectedTextColor
 		{
 			get => _selectedTextColor;

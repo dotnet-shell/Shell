@@ -4,7 +4,7 @@ namespace Dotnet.Shell.Logic.Console
 {
     internal class HideCursor : IDisposable
     {
-        private IConsole c;
+        private readonly IConsole c;
 
         public HideCursor(IConsole c)
         {

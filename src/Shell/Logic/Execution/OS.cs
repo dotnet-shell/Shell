@@ -50,7 +50,7 @@ namespace Dotnet.Shell.Logic.Execution
 
             var proc = new Process();
             proc.StartInfo.RedirectStandardError = redirection.HasFlag(Redirection.Err);
-            proc.StartInfo.RedirectStandardOutput = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? true : redirection.HasFlag(Redirection.Out);
+            proc.StartInfo.RedirectStandardOutput = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || redirection.HasFlag(Redirection.Out);
             proc.StartInfo.RedirectStandardInput = false;
             proc.StartInfo.WorkingDirectory = shell != null ? shell.WorkingDirectory : Environment.CurrentDirectory;
             proc.StartInfo.CreateNoWindow = true;

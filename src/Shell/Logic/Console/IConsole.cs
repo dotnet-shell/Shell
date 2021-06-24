@@ -68,13 +68,13 @@ namespace Dotnet.Shell.Logic.Console
         /// Writes the specified text.
         /// </summary>
         /// <param name="text">The text.</param>
-        void Write(string text = default(string));
+        void Write(string text = default);
 
         /// <summary>
         /// Writes the specified text with a newline at the end
         /// </summary>
         /// <param name="message">The message.</param>
-        void WriteLine(string message = default(string));
+        void WriteLine(string message = default);
 
         /// <summary>
         /// Saves the terminal screen state

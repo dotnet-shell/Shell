@@ -28,17 +28,17 @@ namespace Dotnet.Shell.Logic.Suggestions.Autocompletion
 
                 return matchedEndings
                     .ConvertAll(x => new Suggestion() { CompletionText = x, Index = cursorPos, FullText = sanitizedText + x })
-                    .Union(getMatchingFilesOrDirectories(sanitizedText, shell, cursorPos))
+                    .Union(GetMatchingFilesOrDirectories(sanitizedText, shell, cursorPos))
                     .Distinct()
                     .ToList();
             }
             else
             {
-                return getMatchingFilesOrDirectories(sanitizedText, shell, cursorPos);
+                return GetMatchingFilesOrDirectories(sanitizedText, shell, cursorPos);
             }
         }
 
-        private static List<Suggestion> getMatchingFilesOrDirectories(string sanitizedText, API.Shell shell, int cursorPos)
+        private static List<Suggestion> GetMatchingFilesOrDirectories(string sanitizedText, API.Shell shell, int cursorPos)
         {
             // 'command arg1 arg2 /home/asdad/d<TAB>'
 
@@ -61,7 +61,7 @@ namespace Dotnet.Shell.Logic.Suggestions.Autocompletion
             // bob/asdads<TAB>
 
             // suggest a file or directory
-            List<string> items = new List<string>();
+            List<string> items = new();
             try
             {
                 items.AddRange(Directory.GetFiles(directoryName).Select(x => Path.GetFileName(x)));

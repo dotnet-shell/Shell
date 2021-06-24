@@ -18,7 +18,7 @@ namespace UnitTests
             using (var ms = new MemoryStream())
             {
                 var fakeShell = new Shell();
-                Suggestions s = new Suggestions(fakeShell);
+                Suggestions s = new(fakeShell);
             } 
         }
 
@@ -28,9 +28,9 @@ namespace UnitTests
             using (var ms = new MemoryStream())
             {
                 var fakeShell = new Shell();
-                Suggestions s = new Suggestions(fakeShell);
+                Suggestions s = new(fakeShell);
 
-                ConsoleImproved console = new ConsoleImproved(new MockConsole(), fakeShell);
+                ConsoleImproved console = new(new MockConsole(), fakeShell);
                 console.AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Tab), s.OnTabSuggestCmdAsync);
             }
         }
@@ -41,11 +41,11 @@ namespace UnitTests
             using (var ms = new MemoryStream())
             {
                 var fakeShell = new Shell();
-                Suggestions s = new Suggestions(fakeShell);
+                Suggestions s = new(fakeShell);
 
                 var mockConsole = new MockConsole();
 
-                ConsoleImproved console = new ConsoleImproved(mockConsole, fakeShell);
+                ConsoleImproved console = new(mockConsole, fakeShell);
                 console.AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Tab), s.OnTabSuggestCmdAsync);
 
                 mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.C, ConsoleModifiers.Shift));
@@ -77,11 +77,11 @@ namespace UnitTests
             using (var ms = new MemoryStream())
             {
                 var fakeShell = new Shell();
-                Suggestions s = new Suggestions(fakeShell);
+                Suggestions s = new(fakeShell);
 
                 var mockConsole = new MockConsole();
 
-                ConsoleImproved console = new ConsoleImproved(mockConsole, fakeShell);
+                ConsoleImproved console = new(mockConsole, fakeShell);
                 console.AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Tab), s.OnTabSuggestCmdAsync);
 
                 mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.C, ConsoleModifiers.Shift));

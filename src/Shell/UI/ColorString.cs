@@ -11,14 +11,12 @@ namespace Dotnet.Shell.UI
     /// </summary>
     public class ColorString
     {
-        private const string Normal = "\u001b[{0}m";
-        private const string Bright = "\u001b[{0};1m";
         private const string Reset = "\u001b[0m";
 
         private const string RGBForegroundFormat = "\u001b[38;2;{0};{1};{2}m";
         private const string RGBBackgroundFormat = "\u001b[48;2;{0};{1};{2}m";
 
-        private static Regex RemoveEscapeCharsRegex = new Regex(@"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]", RegexOptions.Compiled);
+        private static readonly Regex RemoveEscapeCharsRegex = new(@"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]", RegexOptions.Compiled);
 
         /// <summary>
         /// Gets the string representation but without formatting characters

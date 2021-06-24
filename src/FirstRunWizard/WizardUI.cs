@@ -8,7 +8,7 @@ namespace FirstRunWizard
 {
     public class WizardUI
     {
-        private string firstRunFilename = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nsh", ".firstrun");
+        private readonly string firstRunFilename = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nsh", ".firstrun");
 
         /// <summary>
         /// Runs the Wizard UI interactively.
@@ -16,7 +16,7 @@ namespace FirstRunWizard
         /// <returns>If False stop execution of the shell, user need to do work</returns>
         public static bool Run()
         {
-            WizardUI wiz = new WizardUI();
+            WizardUI wiz = new();
             return wiz.StartInteractive();
         }
 
@@ -114,7 +114,7 @@ namespace FirstRunWizard
             }
         }
 
-        private void ShowWindowsTerminalConfig()
+        private static void ShowWindowsTerminalConfig()
         {
             const string Data = @"If you use Windows Terminal you can easily access dotnet-shell by including a new environment in your
 Settings file such as in the following snippet:
@@ -131,13 +131,13 @@ Settings file such as in the following snippet:
             Console.WriteLine(@"""commandline"": ""bash -c \""/usr/local/bin/tmux -2 new-session '~/.dotnet/tools/dotnet-shell --ux TmuxEnhanced'\""""");
         }
 
-        private void DownloadCoreScripts()
+        private static void DownloadCoreScripts()
         {
             var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nsh", "functions");
             RunAndGetStdOut("git", "clone https://github.com/dotnet-shell/CoreScripts \""+dir+"\"");
         }
 
-        private void CreateEmptyCoreScriptsDir()
+        private static void CreateEmptyCoreScriptsDir()
         {
             var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nsh", "functions");
             if (!Directory.Exists(dir))
@@ -146,7 +146,7 @@ Settings file such as in the following snippet:
             }
         }
 
-        private void CreateDefaultAliases()
+        private static void CreateDefaultAliases()
         {
             var core = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nsh", "aliases.nsh");
             var defaultAliases = GetEmbeddedResource("defaults/aliases", Assembly.GetExecutingAssembly());
@@ -154,7 +154,7 @@ Settings file such as in the following snippet:
             File.WriteAllText(core, defaultAliases);
         }
 
-        private void CreateDefaultProfile()
+        private static void CreateDefaultProfile()
         {
             var core = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nsh", "core.nsh");
             var defaultProfile = GetEmbeddedResource("defaults/core", Assembly.GetExecutingAssembly());
@@ -162,7 +162,7 @@ Settings file such as in the following snippet:
             File.WriteAllText(core, defaultProfile);
         }
 
-        private bool GetYesOrNo()
+        private static bool GetYesOrNo()
         {
             while (true)
             {
@@ -175,7 +175,7 @@ Settings file such as in the following snippet:
             }
         }
 
-        public bool PreRequisitesCheck()
+        public static bool PreRequisitesCheck()
         {
             if (string.IsNullOrWhiteSpace(RunAndGetStdOut("git", "--version")))
             {
@@ -199,7 +199,7 @@ Settings file such as in the following snippet:
             return true;
         }
 
-        public bool IsSupportedTmuxVersionInstalled()
+        public static bool IsSupportedTmuxVersionInstalled()
         {
             if (!DoesTmuxSupportPopups())
             {
@@ -217,7 +217,7 @@ Settings file such as in the following snippet:
             return true;
         }
 
-        private bool DoesTmuxSupportPopups()
+        private static bool DoesTmuxSupportPopups()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -227,7 +227,7 @@ Settings file such as in the following snippet:
             return false;
         }
 
-        public bool IsWSL()
+        public static bool IsWSL()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -244,7 +244,7 @@ Settings file such as in the following snippet:
             return false;
         }
 
-        public bool IsWindowsTerminal()
+        public static bool IsWindowsTerminal()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -261,7 +261,7 @@ Settings file such as in the following snippet:
             return false;
         }
 
-        private string RunAndGetStdOut(string program, string arguments)
+        private static string RunAndGetStdOut(string program, string arguments)
         {
             var proc = new Process();
             proc.StartInfo.RedirectStandardOutput = true;
@@ -286,7 +286,7 @@ Settings file such as in the following snippet:
                 if (resourceStream == null)
                     return null;
 
-                using (StreamReader reader = new StreamReader(resourceStream))
+                using (StreamReader reader = new(resourceStream))
                 {
                     return reader.ReadToEnd();
                 }

@@ -16,7 +16,7 @@ namespace UnitTests
         public async Task ConstructAsync()
         {
             var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            var exe = await Executer.GetDefaultExecuterAsync(errorDisplay);
+            _ = await Executer.GetDefaultExecuterAsync(errorDisplay);
         }
 
         [TestMethod]

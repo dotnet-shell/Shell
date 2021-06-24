@@ -9,7 +9,7 @@ namespace Dotnet.Shell.Logic.Compilation.Commands
     {
         private const string CMD = "#region CMD //";
         public const string ENDMARKER = " #endregion";
-        private static Regex Vars = new Regex(@"[$].+[$]", RegexOptions.Compiled);
+        private static readonly Regex Vars = new(@"[$].+[$]", RegexOptions.Compiled);
 
         internal static string BuildLine(string commandToRun, bool async, string variableName = null, string returnType = null, Redirection redirection = Redirection.None)
         {

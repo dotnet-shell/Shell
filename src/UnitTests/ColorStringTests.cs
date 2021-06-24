@@ -64,8 +64,8 @@ namespace UnitTests
         [TestMethod]
         public void Construct()
         {
-            ColorString a = new ColorString("hello", Color.Red);
-            ColorString b = new ColorString("hello", Color.Green, Color.Blue);
+            ColorString a = new("hello", Color.Red);
+            ColorString b = new("hello", Color.Green, Color.Blue);
 
             Assert.AreEqual(5, a.Length);
             Assert.AreEqual(5, b.Length);
@@ -81,8 +81,8 @@ namespace UnitTests
         [TestMethod]
         public void StringFunctions()
         {
-            ColorString a = new ColorString("hello", Color.Red);
-            ColorString b = new ColorString("goodbye", Color.Green, Color.Blue);
+            ColorString a = new("hello", Color.Red);
+            ColorString b = new("goodbye", Color.Green, Color.Blue);
 
             var c = a + b;
 

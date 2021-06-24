@@ -16,12 +16,12 @@ namespace Dotnet.Shell.Logic.Compilation
 
     internal class SourceProcessor
     {
-        private CSharpParseOptions parseOptions = new CSharpParseOptions(LanguageVersion.Latest, kind: SourceCodeKind.Script);
-        private List<Func<string, Task<string>>> processingChain = new List<Func<string, Task<string>>>();
-        private readonly List<IShellCommand> syntaxToProcess = new List<IShellCommand>();
-        private readonly List<IShellBlockCommand> blockSyntaxToProcess = new List<IShellBlockCommand>();
+        private readonly CSharpParseOptions parseOptions = new(LanguageVersion.Latest, kind: SourceCodeKind.Script);
+        private readonly List<Func<string, Task<string>>> processingChain = new();
+        private readonly List<IShellCommand> syntaxToProcess = new();
+        private readonly List<IShellBlockCommand> blockSyntaxToProcess = new();
         private readonly ShellCommand shellCommand;
-        private readonly List<IShellCommand> postProcessingSyntax = new List<IShellCommand>();
+        private readonly List<IShellCommand> postProcessingSyntax = new();
 
         public SourceProcessor()
         {

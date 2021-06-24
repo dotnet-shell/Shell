@@ -34,8 +34,8 @@ namespace Dotnet.Shell.Logic.Compilation
         protected Logger logger;
         protected ScriptCompiler scriptCompiler;
         protected ScriptConsole console = ScriptConsole.Default;
-        protected CSharpParseOptions parseOptions = new CSharpParseOptions(LanguageVersion.Latest, kind: SourceCodeKind.Script);
-        protected InteractiveCommandProvider interactiveCommandParser = new InteractiveCommandProvider();
+        protected CSharpParseOptions parseOptions = new(LanguageVersion.Latest, kind: SourceCodeKind.Script);
+        protected InteractiveCommandProvider interactiveCommandParser = new();
 
         public ImmutableDictionary<string, object> ScriptVariables 
         {

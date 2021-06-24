@@ -24,9 +24,9 @@ namespace Dotnet.Shell.API
 
             var r = new Random();
             var token = Guid.NewGuid().ToString();
-            int port = -1;
             TcpListener listener;
 
+            int port;
             while (true)
             {
                 try

@@ -14,9 +14,9 @@ namespace Dotnet.Shell.Logic.Compilation.Commands
         public const string MARKER = "#region SUBCOMMAND // ";
         public const string ENDMARKER = " #endregion";
 
-        private Regex UnescapedBackTicks = new Regex(@"((?<![\\])[`])((?:.(?!(?<![\\])\1))*.?)\1", RegexOptions.Compiled);
-        private Regex UnescapedStrings = new Regex(@"[^\\]*?[""](.+?[^\\]*?)[""]", RegexOptions.Compiled);
-        private Regex VariableAssignmentRegex = new Regex(@"^[a-zA-Z<>]+\d*\s+[a-zA-Z]+\d*\s*=\s*`.+`\s*", RegexOptions.Compiled);
+        private readonly Regex UnescapedBackTicks = new(@"((?<![\\])[`])((?:.(?!(?<![\\])\1))*.?)\1", RegexOptions.Compiled);
+        private readonly Regex UnescapedStrings = new(@"[^\\]*?[""](.+?[^\\]*?)[""]", RegexOptions.Compiled);
+        private readonly Regex VariableAssignmentRegex = new(@"^[a-zA-Z<>]+\d*\s+[a-zA-Z]+\d*\s*=\s*`.+`\s*", RegexOptions.Compiled);
 
         public string GetCodeFromMetaRepresentation(string line)
         {
@@ -35,7 +35,7 @@ namespace Dotnet.Shell.Logic.Compilation.Commands
                 }
             }
 
-            Queue<Tuple<string, bool>> components = new Queue<Tuple<string, bool>>();
+            Queue<Tuple<string, bool>> components = new();
             var positions = new Queue<Tuple<int, int>>(GetBacktickedCommands(line).OrderBy(x => x.Item1));
 
             var lastEndPos = 0;

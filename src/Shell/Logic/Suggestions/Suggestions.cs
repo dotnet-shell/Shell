@@ -81,7 +81,7 @@ namespace Dotnet.Shell.Logic.Suggestions
 
         private string textWhichGeneratedSuggestions = string.Empty;
         private int textPosWhichGeneratedSuggestions = -1;
-        private List<Suggestion> currentSuggestionsList = new List<Suggestion>();
+        private List<Suggestion> currentSuggestionsList = new();
         private int currentlySelectedSuggestion = -1;
         private bool hasTabJustBeenPressedForGroupOfSuggestions = false;
 
@@ -123,12 +123,13 @@ namespace Dotnet.Shell.Logic.Suggestions
             cSharpSuggestionsEngine = new CSharpSuggestions(commandsInPath);
         }
 
-        public async Task OnTabSuggestCmdAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        public async Task<bool> OnTabSuggestCmdAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
-            await performCompletionAsync(prompt, key);
+            await PerformCompletionAsync(prompt, key);
+            return false;
         }
 
-        private async Task performCompletionAsync(ConsoleImproved prompt, ConsoleKeyEx key, int depth = 0)
+        private async Task PerformCompletionAsync(ConsoleImproved prompt, ConsoleKeyEx key, int depth = 0)
         {
             if (NeedsNewSuggestions(prompt))
             {
@@ -141,7 +142,7 @@ namespace Dotnet.Shell.Logic.Suggestions
 
                 // try to get some suggestions, in the future i'd like this to be an API people can register to they can
                 // write their own completion routines
-                List<Task<IEnumerable<Suggestion>>> suggestions2 = new List<Task<IEnumerable<Suggestion>>>();
+                List<Task<IEnumerable<Suggestion>>> suggestions2 = new();
                 suggestions2.Add(cmdSuggestionsEngine.GetSuggestionsAsync(textWhichGeneratedSuggestions, prompt.UserEnteredTextPosition));
                 suggestions2.Add(cSharpSuggestionsEngine.GetSuggestionsAsync(textWhichGeneratedSuggestions, prompt.UserEnteredTextPosition));
                 suggestions2.AddRange(prompt.Shell.AutoCompletionHandlers.Select(x => x(textWhichGeneratedSuggestions, prompt.UserEnteredTextPosition)));
@@ -171,7 +172,7 @@ namespace Dotnet.Shell.Logic.Suggestions
                         prompt.ReplaceUserEntryAtPosition(commonPrefix, commonIndex);
 
                         // because we've changed the onscreen text we need to requery to get a better list of suggestions
-                        await performCompletionAsync(prompt, key, depth + 1);
+                        await PerformCompletionAsync(prompt, key, depth + 1);
                         return;
                     }
                 }

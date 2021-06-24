@@ -23,7 +23,7 @@ namespace Dotnet.Shell.Logic.Console
             this.Modifier = m;
         }
 
-        public static ConsoleKeyEx Any => new ConsoleKeyEx(null, 0);
+        public static ConsoleKeyEx Any => new(null, 0);
 
         public override bool Equals(object y)
         {
@@ -64,7 +64,7 @@ namespace Dotnet.Shell.Logic.Console
     {
         public int CursorPosition = 0;
         public StringBuilder UserEnteredText { get; private set; } = new StringBuilder();
-        public List<KeyValuePair<ConsoleKeyEx, Func<ConsoleImproved, ConsoleKeyEx, Task>>> KeyOverrides = new List<KeyValuePair<ConsoleKeyEx, Func<ConsoleImproved, ConsoleKeyEx, Task>>>();
+        public List<KeyValuePair<ConsoleKeyEx, Func<ConsoleImproved, ConsoleKeyEx, Task<bool>>>> KeyOverrides = new();
         public int UserEnteredTextPosition
         {
             get
@@ -102,7 +102,7 @@ namespace Dotnet.Shell.Logic.Console
         internal object Tag = null;
         internal int LastPromptLength = 0;
 
-        private IConsole implementation;
+        private readonly IConsole implementation;
         private int CurrentHistoryIndex;
         private int LastRawPosition;
         private ConsoleKeyInfo LastKeyRead;
@@ -115,7 +115,7 @@ namespace Dotnet.Shell.Logic.Console
         {
             this.implementation = consoleImplementation;
             this.Shell = shell;
-            this.CurrentHistoryIndex = shell.History.Count() != 0 ? shell.History.Count() - 1 : 0;
+            this.CurrentHistoryIndex = shell.History.Count != 0 ? shell.History.Count - 1 : 0;
 
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Backspace), OnBackSpaceAsync);
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Delete), OnDeleteAsync);
@@ -125,11 +125,12 @@ namespace Dotnet.Shell.Logic.Console
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.DownArrow), OnHistoryAsync);
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Home), OnHomeAsync);
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.End), OnEndAsync);
+            AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Enter), OnEnterAsync);
         }
 
-        public void AddKeyOverride(ConsoleKeyEx key, Func<ConsoleImproved, ConsoleKeyEx, Task> func)
+        public void AddKeyOverride(ConsoleKeyEx key, Func<ConsoleImproved, ConsoleKeyEx, Task<bool>> func)
         {
-            KeyOverrides.Add(new KeyValuePair<ConsoleKeyEx, Func<ConsoleImproved, ConsoleKeyEx, Task>>(key, func));
+            KeyOverrides.Add(new KeyValuePair<ConsoleKeyEx, Func<ConsoleImproved, ConsoleKeyEx, Task<bool>>>(key, func));
         }
 
         public void WriteLine(string message = "")
@@ -149,6 +150,9 @@ namespace Dotnet.Shell.Logic.Console
 
         public void Write(string text = "", bool wrapText = false)
         {
+            // remove any multiline padding characters
+            //text = text.Replace("\0", "");
+
             if (wrapText)
             {
                 var lastLineLength = 0;
@@ -181,7 +185,8 @@ namespace Dotnet.Shell.Logic.Console
             implementation.CursorLeft = CursorPosition;
             bool useCursorLeft = implementation.CursorLeft == 0;
 
-            implementation.Write(text.TextWithFormattingCharacters);
+            // write and remove any multiline padding characters
+            implementation.Write(text.TextWithFormattingCharacters/*.Replace("\0", "")*/);
 
             CursorPosition += text.Length;
 
@@ -195,7 +200,7 @@ namespace Dotnet.Shell.Logic.Console
             }
         }
 
-        private int calculateTotalNumberOfLines()
+        private int CalculateTotalNumberOfLines()
         {
             int extraLinesCreated = 0;
 
@@ -212,7 +217,7 @@ namespace Dotnet.Shell.Logic.Console
             return extraLinesCreated;
         }
 
-        private async Task<ConsoleKeyEx> ReadKeyAsync(CancellationToken token = default(CancellationToken), bool addToInternalBuffer = true)
+        private async Task<ConsoleKeyEx> ReadKeyAsync(bool addToInternalBuffer = true, CancellationToken token = default)
         {
             LastRawPosition = implementation.CursorLeft;
 
@@ -300,7 +305,7 @@ namespace Dotnet.Shell.Logic.Console
                 }
             }
 
-            var numberOfExtraLines = calculateTotalNumberOfLines();
+            var numberOfExtraLines = CalculateTotalNumberOfLines();
             if (numberOfExtraLines > totalExtraLinesCreated)
             {
                 totalExtraLinesCreated = numberOfExtraLines;
@@ -309,33 +314,41 @@ namespace Dotnet.Shell.Logic.Console
             return new ConsoleKeyEx(key.Key, key.Modifiers);
         }
 
-        public async Task<string> GetCharAsync(CancellationToken cancellationToken = default(CancellationToken))
+        internal async Task<string> GetCharAsync(CancellationToken cancellationToken = default)
         {
-            var key = await ReadKeyAsync(cancellationToken, false);
+            var key = await ReadKeyAsync(false, cancellationToken);
             return key.Key.Value.ToString();
         }
 
-        public async Task<string> GetCommandAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<string> GetCommandAsync(CancellationToken cancellationToken = default)
         {
             while (!cancellationToken.IsCancellationRequested) // read input from user loop
             {
-                var keyEvent = await ReadKeyAsync(cancellationToken);
+                var keyEvent = await ReadKeyAsync(true, cancellationToken);
 
-                implementation.CursorVisible = false;
-                foreach (var kvp in KeyOverrides.Where(x => x.Key.Equals(keyEvent)))
+                bool stopFurtherProcessing = false;
+                using (new HideCursor(implementation))
                 {
-                    await kvp.Value(this, keyEvent);
+                    foreach (var kvp in KeyOverrides.Where(x => x.Key.Equals(keyEvent)))
+                    {
+                        if (await kvp.Value(this, keyEvent))
+                        {
+                            // we've been requested to stop processing - that means no further handlers will be run
+                            stopFurtherProcessing = true;
+                            break;
+                        }
+                    }
                 }
-                implementation.CursorVisible = true;
 
-                if (keyEvent.Key == ConsoleKey.Enter)
+                if (!stopFurtherProcessing && keyEvent.Key == ConsoleKey.Enter)
                 {
                     WriteLine();
                     break;
                 }
             }
 
-            var command = UserEnteredText.ToString();
+            // replace any padding characters with the null string
+            var command = UserEnteredText.Replace("\\\0", "").Replace("\0", "").ToString();
 
             foreach (var handler in Shell.CommandHandlers)
             {
@@ -445,7 +458,7 @@ namespace Dotnet.Shell.Logic.Console
             }
         }
 
-        private Task OnBackSpaceAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        private Task<bool> OnBackSpaceAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
             return Task.Run(() =>
             {
@@ -463,14 +476,14 @@ namespace Dotnet.Shell.Logic.Console
                         implementation.CursorLeft = CursorPosition;
                         Write(UserEnteredText.ToString(), totalExtraLinesCreated != 0);
 
-                        if (originalCursorPos - 1 > 0)
+                        if (originalCursorPos - 1 >= 0)
                         {
                             CursorPosition = originalCursorPos - 1;
                         }
                         else
                         {
                             // need to go up a line
-                            CursorPosition = implementation.WindowWidth - 1;
+                            CursorPosition = implementation.WindowWidth - 2;
                             originalCursorTop--;
                             currentLineIndex--;
                         }
@@ -484,10 +497,12 @@ namespace Dotnet.Shell.Logic.Console
                 {
                     implementation.CursorLeft = LastPromptLength;
                 }
+
+                return false;
             });
         }
 
-        private Task OnDeleteAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        private Task<bool> OnDeleteAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
             return Task.Run(() =>
             {
@@ -506,10 +521,12 @@ namespace Dotnet.Shell.Logic.Console
 
                     implementation.CursorVisible = true;
                 }
+
+                return false;
             });
         }
 
-        private Task OnHomeAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        private Task<bool> OnHomeAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
             return Task.Run(() => { 
                 CursorPosition = LastPromptLength;
@@ -517,10 +534,12 @@ namespace Dotnet.Shell.Logic.Console
 
                 implementation.CursorLeft = CursorPosition;
                 implementation.CursorTop = lastPromptCursorTop;
+
+                return false;
             });
         }
 
-        private Task OnEndAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        private Task<bool> OnEndAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
             return Task.Run(() => {
 
@@ -545,10 +564,12 @@ namespace Dotnet.Shell.Logic.Console
                     CursorPosition = LastPromptLength + UserEnteredText.Length;
                     implementation.CursorLeft = CursorPosition;
                 }
+
+                return false;
             });
         }
 
-        private Task OnArrowAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        private Task<bool> OnArrowAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
             return Task.Run(() => {
 
@@ -586,10 +607,12 @@ namespace Dotnet.Shell.Logic.Console
 
                     implementation.CursorLeft = CursorPosition;
                 }
+
+                return false;
             });
         }
 
-        private Task OnHistoryAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        private Task<bool> OnHistoryAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
             return Task.Run(() =>
             {
@@ -622,6 +645,38 @@ namespace Dotnet.Shell.Logic.Console
                     UserEnteredText.Clear();
                     UserEnteredText.Append(newCmd);
                 }
+
+                return false;
+            });
+        }
+
+        private Task<bool> OnEnterAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        {
+            return Task.Run(() =>
+            {
+                // as in Bash escaping can only be performed at the end of the line
+                // ie you cant just jump to multiline in the middle of an existing command
+                if (UserEnteredText.Length != 0 && UserEnteredTextPosition == UserEnteredText.Length && UserEnteredText[^1] == '\\')
+                {
+                    // remove the \ character
+                    //UserEnteredText.Remove(UserEnteredText.Length -1, 1);
+
+                    // pad out the line with \0
+
+                    // Can't use CursorLeft as its already on a newline - use lastRawPosition
+                    // we can use that value as we are being executed write after it is set
+                    var charsToAdd = Width - LastRawPosition -1;
+                    UserEnteredText = UserEnteredText.Append(new string('\0', charsToAdd));
+
+                    // force a newline
+                    totalExtraLinesCreated++;
+                    currentLineIndex++;
+                    implementation.CursorLeft = 0;
+                    CursorPosition = 0;
+                    implementation.WriteLine(); // todo there may already be space?
+                    return true;
+                }
+                return false;
             });
         }
     }

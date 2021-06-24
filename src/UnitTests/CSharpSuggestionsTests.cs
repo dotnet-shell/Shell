@@ -11,7 +11,7 @@ namespace UnitTests
         [TestMethod]
         public async Task ConstructAsync()
         {
-            CSharpSuggestions cSharpSuggestions = new CSharpSuggestions();
+            CSharpSuggestions cSharpSuggestions = new();
             var results = await cSharpSuggestions.GetSuggestionsAsync(string.Empty, 0);
             Assert.AreEqual(0, results.Count());
         }
@@ -19,7 +19,7 @@ namespace UnitTests
         [TestMethod]
         public async Task SimpleQueryAsync()
         {
-            CSharpSuggestions cSharpSuggestions = new CSharpSuggestions();
+            CSharpSuggestions cSharpSuggestions = new();
 
             var text = "Console.WriteLi";
 
@@ -31,7 +31,7 @@ namespace UnitTests
         [TestMethod]
         public async Task SimpleQueryWithMultipleResultsAsync()
         {
-            CSharpSuggestions cSharpSuggestions = new CSharpSuggestions();
+            CSharpSuggestions cSharpSuggestions = new();
 
             var text = "Console.";
 

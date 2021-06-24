@@ -13,10 +13,10 @@ namespace Dotnet.Shell.Logic.Execution
         private delegate object StringParseFunc(string strRep);
         private delegate object BinaryParseFunc(Stream stream);
 
-        private static Dictionary<Type, Tuple<StringParseFunc, BinaryParseFunc>> CmdToConversionLookupTable = new Dictionary<Type, Tuple<StringParseFunc, BinaryParseFunc>>()
+        private static readonly Dictionary<Type, Tuple<StringParseFunc, BinaryParseFunc>> CmdToConversionLookupTable = new()
         {
             // basic types
-            [typeof(bool)] = new Tuple<StringParseFunc, BinaryParseFunc>((str) => bool.Parse(str), (stream) => stream.ReadByte() == 0x0 ? false : true),
+            [typeof(bool)] = new Tuple<StringParseFunc, BinaryParseFunc>((str) => bool.Parse(str), (stream) => stream.ReadByte() != 0x0),
             [typeof(byte)] = new Tuple<StringParseFunc, BinaryParseFunc>((str) => byte.Parse(str), (stream) => stream.ReadByte()),
             [typeof(sbyte)] = new Tuple<StringParseFunc, BinaryParseFunc>((str) => sbyte.Parse(str), (stream) => (sbyte)stream.ReadByte()),
             [typeof(char)] = new Tuple<StringParseFunc, BinaryParseFunc>((str) => char.Parse(str), (stream) => (char)stream.ReadByte()),
@@ -41,9 +41,9 @@ namespace Dotnet.Shell.Logic.Execution
         };
 
         private bool disposedValue;
-        private Process p;
-        private CancellationTokenSource terminateProcessTokenSource = new CancellationTokenSource();
-        private CancellationTokenSource suspendProcessTokenSource = new CancellationTokenSource();
+        private readonly Process p;
+        private readonly CancellationTokenSource terminateProcessTokenSource = new();
+        private CancellationTokenSource suspendProcessTokenSource = new();
         private bool suspended = false;
 
         public Process Process => p;
@@ -81,12 +81,11 @@ namespace Dotnet.Shell.Logic.Execution
                 Resume();
             }
 
-            Task task = null;
             using (var cts = CancellationTokenSource.CreateLinkedTokenSource(terminateProcessTokenSource.Token, suspendProcessTokenSource.Token))
             {
                 try
                 {
-                    task = p.WaitForExitAsync(cts.Token);
+                    Task task = p.WaitForExitAsync(cts.Token);
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                     task.Wait(cts.Token);
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
@@ -152,7 +151,7 @@ namespace Dotnet.Shell.Logic.Execution
             suspended = false;
         }
 
-        public Task WaitForExitAsync(CancellationToken token = default(CancellationToken))
+        public Task WaitForExitAsync(CancellationToken token = default)
         {
             return p.WaitForExitAsync(token);
         }
@@ -191,7 +190,6 @@ namespace Dotnet.Shell.Logic.Execution
         {
             if (p.StartInfo.RedirectStandardError)
             {
-                var shell = s as Dotnet.Shell.API.Shell;
                 var stdErrTask = p.StandardError.BaseStream.CopyToAsync(stream);
                 p.WaitForExit();
 

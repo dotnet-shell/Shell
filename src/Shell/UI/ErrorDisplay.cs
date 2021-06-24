@@ -9,8 +9,8 @@ namespace Dotnet.Shell.UI
 {
     internal class ErrorDisplay : IOptionsMonitor<ConsoleLoggerOptions>
     {
-        private IConsole console;
-        private ConsoleLoggerOptions _consoleLoggerOptions;
+        private readonly IConsole console;
+        private readonly ConsoleLoggerOptions _consoleLoggerOptions;
 
         public ErrorDisplay(IConsole console)
         {
@@ -22,7 +22,7 @@ namespace Dotnet.Shell.UI
             };
         }
 
-        public void PrettyException(Exception ex, string input = default(string), string originalInput = default(string))
+        public void PrettyException(Exception ex, string input = default, string originalInput = default)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace Dotnet.Shell.UI
             {
                 if (ex.Message.StartsWith("(") && ex.Message.Contains(")"))
                 {
-                    var lineAndChar = ex.Message.Substring(1, ex.Message.IndexOf(")") - 1);
+                    var lineAndChar = ex.Message[1..ex.Message.IndexOf(")")];
                     var lineAndCharSplit = lineAndChar.Split(",");
                     line = int.Parse(lineAndCharSplit[0]) - 1;
                     charPos = int.Parse(lineAndCharSplit[1]);
@@ -114,7 +114,7 @@ namespace Dotnet.Shell.UI
             return null;
         }
 
-        public void PrettyInfo(string line)
+        public static void PrettyInfo(string line)
         {
             Console.WriteLine(line);
         }

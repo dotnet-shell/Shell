@@ -18,22 +18,22 @@ namespace Dotnet.Shell.UI.Enhanced
     {
         private bool quit = false;
         private bool updateSearch = false;
-        private IConsole console = null;
+        private readonly IConsole console = null;
         private TextBox searchBox = null;
         private ListView listView = null;
 
-        public static Func<ConsoleImproved, ConsoleKeyEx, Task> OnSearchHistory(IConsole console, Dotnet.Shell.API.Shell shell)
+        public static Func<ConsoleImproved, ConsoleKeyEx, Task<bool>> OnSearchHistory(IConsole console)
         {
             var search = new HistoryBox(console);
             return search.OnSearchHistoryAltModeAsync;
         }
 
-        public static Func<ConsoleImproved, ConsoleKeyEx, Task> OnSearchHistoryTmux(IConsole console, Dotnet.Shell.API.Shell shell)
+        public static Func<ConsoleImproved, ConsoleKeyEx, Task<bool>> OnSearchHistoryTmux()
         {
             return OnSearchHistoryTmuxModeAsync;
         }
 
-        private async Task OnSearchHistoryAltModeAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        private async Task<bool> OnSearchHistoryAltModeAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
             await console.SaveAsync();
 
@@ -42,14 +42,16 @@ namespace Dotnet.Shell.UI.Enhanced
             await console.RestoreAsync();
 
             prompt.DisplayPrompt(command);
+
+            return false;
         }
 
-        private static async Task OnSearchHistoryTmuxModeAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        private static async Task<bool> OnSearchHistoryTmuxModeAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
             ProcessEx tmuxPopup = null;
 
             var result = HistoryAPI.ListenForSearchResultAsync((port, token) => {
-                var cssCommand = string.Format(Settings.Default.HistoryPopupCommand, prompt.Shell.AssemblyLocation, port, token);
+                var cssCommand = string.Format(Settings.Default.HistoryPopupCommand, API.Shell.AssemblyLocation, port, token);
                 var tmuxCommand = string.Format(Settings.Default.PopupCommand, cssCommand);
 
                 // start tmux prompt
@@ -69,6 +71,8 @@ namespace Dotnet.Shell.UI.Enhanced
             {
                 prompt.DisplayPrompt("Error");
             }
+
+            return false;
         }
 
         public HistoryBox(IConsole console)
@@ -79,9 +83,10 @@ namespace Dotnet.Shell.UI.Enhanced
         private Control Build(List<string> history)
         {
             searchBox = new TextBox();
-            listView = new ListView();
-
-            listView.Items = history;
+            listView = new ListView
+            {
+                Items = history
+            };
 
             return new Background()
             {

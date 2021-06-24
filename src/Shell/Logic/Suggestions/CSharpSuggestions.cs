@@ -18,9 +18,9 @@ namespace Dotnet.Shell.Logic.Suggestions
         private readonly Task<string[]> commandsInPath;
         private readonly IEnumerable<MetadataReference> assemblies;
         private readonly Project project;
-        private readonly Regex PowershellOrBashCommandRegex = new Regex(@"^[\w-]+$", RegexOptions.Compiled);
+        private readonly Regex PowershellOrBashCommandRegex = new(@"^[\w-]+$", RegexOptions.Compiled);
 
-        internal CSharpSuggestions() : this(Task.FromResult(new string[0]))
+        internal CSharpSuggestions() : this(Task.FromResult(Array.Empty<string>()))
         {
 
         }
@@ -70,7 +70,7 @@ namespace Dotnet.Shell.Logic.Suggestions
         /// todo get this from executor
         /// </summary>
         /// <returns></returns>
-        private List<MetadataReference> GetAllLoadedAssemblies()
+        private static List<MetadataReference> GetAllLoadedAssemblies()
         {
             var refs = AppDomain.CurrentDomain.GetAssemblies();
             var references = new List<MetadataReference>();
@@ -114,7 +114,7 @@ namespace Dotnet.Shell.Logic.Suggestions
             return await GetCompletionResultsAsync(document, sanitizedText, sanitizedText.Length);
         }
 
-        private async Task<IEnumerable<Suggestion>> GetCompletionResultsAsync(Document document, string sanitizedText, int position)
+        private static async Task<IEnumerable<Suggestion>> GetCompletionResultsAsync(Document document, string sanitizedText, int position)
         {
             var ret = new List<Suggestion>();
 

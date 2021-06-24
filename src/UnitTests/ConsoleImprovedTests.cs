@@ -21,7 +21,7 @@ namespace UnitTests
             using (var ms = new MemoryStream())
             {
                 var fakeShell = new Shell();
-                ConsoleImproved console = new ConsoleImproved(new MockConsole(), fakeShell);
+                ConsoleImproved console = new(new MockConsole(), fakeShell);
             }
         }
 
@@ -35,7 +35,7 @@ namespace UnitTests
                 var console = new ConsoleImproved(mockConsole, fakeShell);
 
                 int handlerCalled = 0;
-                console.AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Tab), (a, b) => { handlerCalled++; return Task.CompletedTask; });
+                console.AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Tab), (a, b) => { handlerCalled++; return Task<bool>.FromResult(false); });
 
                 mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.A));
                 mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.Tab));
@@ -71,8 +71,10 @@ namespace UnitTests
 
             using (var ms = new MemoryStream())
             {
-                var fakeShell = new Shell();
-                fakeShell.Prompt = () => { return Prompt; };
+                var fakeShell = new Shell
+                {
+                    Prompt = () => { return Prompt; }
+                };
 
                 var mockConsole = new MockConsole();
                 var console = new ConsoleImproved(mockConsole, fakeShell);
@@ -135,7 +137,7 @@ namespace UnitTests
                         Assert.AreEqual(console.UserEnteredText.Length, console.UserEnteredTextPosition);
                         Assert.AreEqual(lastPos, console.UserEnteredTextPosition);
                     }
-                    return Task.CompletedTask; 
+                    return Task<bool>.FromResult(false); 
                 });
 
                 console.DisplayPrompt();
@@ -184,7 +186,7 @@ namespace UnitTests
                         pos++;
                     }
                     Assert.AreEqual(pos, console.UserEnteredTextPosition);
-                    return Task.CompletedTask;
+                    return Task<bool>.FromResult(false);
                 });
 
                 console.DisplayPrompt();
@@ -243,7 +245,7 @@ namespace UnitTests
                     {
                         lastPos++;
                     }
-                    return Task.CompletedTask;
+                    return Task<bool>.FromResult(false);
                 });
 
                 console.DisplayPrompt();
@@ -370,8 +372,8 @@ namespace UnitTests
 
     internal class MockConsole : IConsole
     {
-        public StringBuilder Output = new StringBuilder();
-        public Queue<ConsoleKeyEx> keys = new Queue<ConsoleKeyEx>();
+        public StringBuilder Output = new();
+        public Queue<ConsoleKeyEx> keys = new();
 
         private int cursorLeft = 0;
         private int cursorTop = 0;
@@ -395,7 +397,7 @@ namespace UnitTests
         {
             var keyEx = keys.Dequeue();
 
-            char final = '\r';
+            char final;
             if (keyEx.Key.Value == ConsoleKey.Tab)
             {
                 final = '\t';

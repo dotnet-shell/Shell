@@ -236,7 +236,7 @@ var exec=`cat $testNum$ $testStr$`;";
         [TestMethod]
         public void BackTickCommand_InternalExtractions()
         {
-            BacktickCommand cmd = new BacktickCommand();
+            BacktickCommand cmd = new();
             var result = cmd.GetBacktickedCommands("`test`");
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(1, result[0].Item1);
@@ -276,7 +276,7 @@ var exec=`cat $testNum$ $testStr$`;";
         [TestMethod]
         public void BackTickCommand_Parsing()
         {
-            BacktickCommand cmd = new BacktickCommand();
+            BacktickCommand cmd = new();
             Assert.IsTrue(cmd.IsValid("test `123`"));
             Assert.IsTrue(cmd.IsValid("test `"));
 

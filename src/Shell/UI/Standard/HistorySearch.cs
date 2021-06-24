@@ -17,11 +17,11 @@ namespace Dotnet.Shell.UI.Standard
 
     internal class HistorySearch
     {
-        private IConsole implementation;
-        private Dotnet.Shell.API.Shell shell;
+        private readonly IConsole implementation;
+        private readonly Dotnet.Shell.API.Shell shell;
         private ConsoleImproved ci = null;
 
-        public static Func<ConsoleImproved, ConsoleKeyEx, Task> OnSearchHistory(IConsole console, Dotnet.Shell.API.Shell shell)
+        public static Func<ConsoleImproved, ConsoleKeyEx, Task<bool>> OnSearchHistory(IConsole console, Dotnet.Shell.API.Shell shell)
         {
             var search = new HistorySearch(console, shell);
             return search.OnSearchHistoryAsync;
@@ -33,7 +33,7 @@ namespace Dotnet.Shell.UI.Standard
             this.shell = shell;
         }
 
-        private async Task OnSearchHistoryAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        private async Task<bool> OnSearchHistoryAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
             int oldPos = implementation.CursorTop;
 
@@ -77,6 +77,8 @@ namespace Dotnet.Shell.UI.Standard
             implementation.Write(new string(' ', implementation.WindowWidth));
 
             prompt.DisplayPrompt(command);
+
+            return false;
         }
 
         private void RenderSearchChanges(SearchHistory? searchHistory = null)
@@ -138,11 +140,11 @@ namespace Dotnet.Shell.UI.Standard
             implementation.CursorVisible = true;
         }
 
-        private int[] FindAllIndexesOf(string line, string term)
+        private static int[] FindAllIndexesOf(string line, string term)
         {
             if (string.IsNullOrWhiteSpace(line) || string.IsNullOrWhiteSpace(term))
             {
-                return new int[0];
+                return Array.Empty<int>();
             }
 
             var matches = new List<int>();
@@ -154,7 +156,7 @@ namespace Dotnet.Shell.UI.Standard
                 if (index != -1)
                 {
                     matches.Add(index);
-                    index = index + term.Length;
+                    index += term.Length;
                 }
                 else
                 {
@@ -164,13 +166,13 @@ namespace Dotnet.Shell.UI.Standard
             return matches.ToArray();
         }
 
-        private Task OnSearchTextEnteredAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        private Task<bool> OnSearchTextEnteredAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
             return Task.Run(() =>
             {
                 if (key.Key.Value == ConsoleKey.UpArrow || key.Key.Value == ConsoleKey.DownArrow)
                 {
-                    return;
+                    return false;
                 }
 
                 var text = ci.UserEnteredText.ToString();
@@ -186,17 +188,17 @@ namespace Dotnet.Shell.UI.Standard
                 };
                 RenderSearchChanges(search);
                 ci.Tag = search;
+
+                return false;
             });
         }
 
-        private Task OnChangeSearchEntryAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        private Task<bool> OnChangeSearchEntryAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
             return Task.Run(() =>
             {
-                if (ci.Tag is SearchHistory)
+                if (ci.Tag is SearchHistory results)
                 {
-                    var results = (SearchHistory)ci.Tag;
-
                     if (key.Key == ConsoleKey.DownArrow)
                     {
                         if (results.SelectedItem < results.SearchResults.Count - 1)
@@ -215,22 +217,25 @@ namespace Dotnet.Shell.UI.Standard
                     RenderSearchChanges(results);
                     ci.Tag = results;
                 }
+
+                return false;
             });
         }
 
-        private Task OnSelectSearchEntryAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        private Task<bool> OnSelectSearchEntryAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
             return Task.Run(() =>
             {
-                if (ci.Tag is SearchHistory)
+                if (ci.Tag is SearchHistory search)
                 {
-                    var search = (SearchHistory)ci.Tag;
                     if (search.SearchResults.Any())
                     {
                         ci.UserEnteredText.Clear();
                         ci.UserEnteredText.Append(search.SearchResults[search.SelectedItem]);
                     }
                 }
+
+                return false;
             });
         }
     }

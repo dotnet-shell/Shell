@@ -37,7 +37,7 @@ namespace Dotnet.Shell.Logic.Suggestions.Autocompletion
 
         private static IEnumerable<string> GetFilesAndFolders(string basePath)
         {
-            List<string> ret = new List<string>();
+            List<string> ret = new();
 
             try
             {

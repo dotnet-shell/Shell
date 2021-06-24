@@ -34,7 +34,7 @@ namespace Dotnet.Shell.Logic
         /// <summary>
         /// The default settings used by dotnet-shell
         /// </summary>
-        public static Settings Default = new Settings();
+        public static Settings Default = new();
 
         public void AddComplexDefaults()
         {

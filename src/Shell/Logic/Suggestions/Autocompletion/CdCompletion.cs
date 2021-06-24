@@ -75,7 +75,7 @@ namespace Dotnet.Shell.Logic.Suggestions.Autocompletion
             }
             catch
             {
-                return new string[] { };
+                return Array.Empty<string>();
             }
         }
     }

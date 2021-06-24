@@ -6,8 +6,8 @@ namespace Dotnet.Shell.Logic.Compilation
 {
     internal class CommentWalker : CSharpSyntaxWalker
     {
-        public List<Location> Comments = new List<Location>();
-        public List<string> SingleLineComments = new List<string>();
+        public List<Location> Comments = new();
+        public List<string> SingleLineComments = new();
 
         public CommentWalker(SyntaxWalkerDepth depth = SyntaxWalkerDepth.Trivia) : base(depth)
         {

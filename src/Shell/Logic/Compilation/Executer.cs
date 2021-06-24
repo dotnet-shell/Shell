@@ -17,9 +17,9 @@ namespace Dotnet.Shell.Logic.Compilation
     internal class Executer
     {
         private readonly ErrorDisplay errorHelper;
-        private readonly ConcurrentQueue<string> runOnCompletion = new ConcurrentQueue<string>();
-        private readonly SourceProcessor nshProcessor = new SourceProcessor();
-        private InteractiveRunner runner;
+        private readonly ConcurrentQueue<string> runOnCompletion = new();
+        private readonly SourceProcessor nshProcessor = new();
+        private readonly InteractiveRunner runner;
 
         public Dotnet.Shell.API.Shell Shell => this.runner.ScriptVariables["Shell"] as Dotnet.Shell.API.Shell;
 
@@ -59,7 +59,7 @@ namespace Dotnet.Shell.Logic.Compilation
 
                     if (Settings.Default.ShowPreProcessorOutput)
                     {
-                        errorHelper.PrettyInfo(result);
+                        ErrorDisplay.PrettyInfo(result);
                     }
 
                     executer.runOnCompletion.Enqueue(result);
@@ -131,7 +131,7 @@ var Args = new List<string>();
                     line = await nshProcessor.ProcessAsync(line);
                     if (Settings.Default.ShowPreProcessorOutput)
                     {
-                        errorHelper.PrettyInfo(line);
+                        ErrorDisplay.PrettyInfo(line);
                     }
                 }
 
@@ -208,7 +208,7 @@ var Args = new List<string>();
             }
         }
 
-        private List<MetadataReference> GetAllLoadedAssemblies()
+        private static List<MetadataReference> GetAllLoadedAssemblies()
         {
             var refs = AppDomain.CurrentDomain.GetAssemblies();
             var references = new List<MetadataReference>();

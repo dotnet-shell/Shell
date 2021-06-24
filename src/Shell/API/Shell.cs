@@ -93,7 +93,7 @@ namespace Dotnet.Shell.API
         /// <value>
         /// The assembly location.
         /// </value>
-        public string AssemblyLocation => Assembly.GetEntryAssembly().Location;
+        public static string AssemblyLocation => Assembly.GetEntryAssembly().Location;
 
         /// <summary>
         /// The shell history
@@ -142,9 +142,9 @@ namespace Dotnet.Shell.API
         public ProcessEx LastExecutedProcess = null;
 
         internal Task HistoryLoadedTask = Task.CompletedTask;
-        internal List<ProcessEx> backgroundProcesses = new List<ProcessEx>();
-        internal Dictionary<string, string> csAliases = new Dictionary<string, string>();
-        internal Dictionary<string, string> cmdAliases = new Dictionary<string, string>();
+        internal List<ProcessEx> backgroundProcesses = new();
+        internal Dictionary<string, string> csAliases = new();
+        internal Dictionary<string, string> cmdAliases = new();
         internal Func<Dictionary<string, string>> EnvironmentVariables = null;
 
         /// <summary>
