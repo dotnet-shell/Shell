@@ -35,6 +35,10 @@ namespace Dotnet.Shell.Logic.Compilation
                 var ret = new Dictionary<string, string>();
                 foreach (var variable in executer.runner.ScriptVariables)
                 {
+                    // this next bit is crucial for C# working well in a shell environment
+                    // c# variables are treated like environment variables but unlike Bash
+                    // C# variables cannot be unset. To emulate that behaviour we treat NULL variables
+                    // like the don't exist
                     if (variable.Value != null)
                     {
                         ret.Add(variable.Key, variable.Value.ToString());
