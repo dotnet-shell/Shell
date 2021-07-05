@@ -184,6 +184,19 @@ namespace Dotnet.Shell.API
         }
 
         /// <summary>
+        /// Removes a C# alias.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <returns></returns>
+        public void RemoveCSAlias(string command)
+        {
+            if (cmdAliases.ContainsKey(command))
+            {
+                cmdAliases.Remove(command);
+            }
+        }
+
+        /// <summary>
         /// Adds a command alias
         /// An example of this is Shell.AddCmdAlias("ls", "ls --color=auto ");
         /// </summary>
@@ -192,6 +205,19 @@ namespace Dotnet.Shell.API
         public void AddCmdAlias(string command, string replacement)
         {
             SafeDictionaryAdd(command, replacement, ref cmdAliases, "Command alias ({0}) already exists, ignoring. Remove this alias to stop this warning");
+        }
+
+        /// <summary>
+        /// Removes a command alias.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <returns></returns>
+        public void RemoveCmdAlias(string command)
+        {
+            if (cmdAliases.ContainsKey(command))
+            {
+                cmdAliases.Remove(command);
+            }
         }
 
         private void SafeDictionaryAdd(string key, string value, ref Dictionary<string, string> dict, string error)
@@ -353,6 +379,12 @@ namespace Dotnet.Shell.API
             return input;
         }
 
+        /// <summary>
+        /// Executes the an OS command asynchronously.
+        /// </summary>
+        /// <param name="input">The command line.</param>
+        /// <param name="r">The redirection conditions, if any</param>
+        /// <returns>Task<ProcessEx></returns>
         public Task<ProcessEx> ExecuteAsync(string input, object r = null)
         {
             Redirection redirection = r == null ? Redirection.None : (Redirection)r;
@@ -366,6 +398,12 @@ namespace Dotnet.Shell.API
             return Task.Run(() => OS.Exec(input, this, redirection).WaitTillExit(this));
         }
 
+        /// <summary>
+        /// Executes the an OS command synchronously.
+        /// </summary>
+        /// <param name="input">The command line.</param>
+        /// <param name="r">The redirection conditions, if any</param>
+        /// <returns>Task<ProcessEx></returns>
         public ProcessEx Execute(string input, object r = null)
         {
             Redirection redirection = r == null ? Redirection.None : (Redirection)r;
