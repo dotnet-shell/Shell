@@ -190,9 +190,9 @@ namespace Dotnet.Shell.API
         /// <returns></returns>
         public void RemoveCSAlias(string command)
         {
-            if (cmdAliases.ContainsKey(command))
+            if (csAliases.ContainsKey(command))
             {
-                cmdAliases.Remove(command);
+                csAliases.Remove(command);
             }
         }
 
