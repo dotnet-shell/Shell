@@ -263,17 +263,24 @@ Settings file such as in the following snippet:
 
         private static string RunAndGetStdOut(string program, string arguments)
         {
-            var proc = new Process();
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.StartInfo.CreateNoWindow = true;
-            proc.StartInfo.FileName = program;
-            proc.StartInfo.Arguments = arguments;
-            proc.StartInfo.UseShellExecute = false;
+            try
+            {
+                var proc = new Process();
+                proc.StartInfo.RedirectStandardOutput = true;
+                proc.StartInfo.CreateNoWindow = true;
+                proc.StartInfo.FileName = program;
+                proc.StartInfo.Arguments = arguments;
+                proc.StartInfo.UseShellExecute = false;
 
-            proc.Start();
-            proc.WaitForExit();
+                proc.Start();
+                proc.WaitForExit();
 
-            return proc.StandardOutput.ReadToEnd();
+                return proc.StandardOutput.ReadToEnd();
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
         public static string GetEmbeddedResource(string resourceName, Assembly assembly)
         {
