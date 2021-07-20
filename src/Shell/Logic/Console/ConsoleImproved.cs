@@ -367,6 +367,16 @@ namespace Dotnet.Shell.Logic.Console
 
         public void DisplayPrompt()
         {
+            // first we need to check if std out has put us in an odd location
+            // if it has, by say cat-ing a file without a newline we want to add a newline
+            // the behaviour is different from bash but looks so much better and stops the next
+            // logic clobbering stdout
+
+            if (implementation.CursorLeft != 0)
+            {
+                WriteLine();
+            }
+
             implementation.CursorLeft = 0;
             CursorPosition = 0;
             totalExtraLinesCreated = 0;
