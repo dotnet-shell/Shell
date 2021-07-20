@@ -26,12 +26,10 @@ namespace Dotnet.Shell.Logic.Suggestions.Autocompletion
             }
 
             return GetFilesAndFolders(basePath)
-                .Select(x => Path.GetFileName(x))
                 .Where(x => x.StartsWith(startOfFilename))
-                .Select(x => x.Remove(0, startOfFilename.Length))
                 // TODO we should check if the executable bit is set here
                 .Distinct()
-                .Select(x => new Suggestion() { Index = cursorPos, CompletionText = x, FullText = x })
+                .Select(x => new Suggestion() { Index = cursorPos, CompletionText = x.Remove(0, startOfFilename.Length), FullText = x })
                 .ToList();
         }
 
@@ -41,7 +39,7 @@ namespace Dotnet.Shell.Logic.Suggestions.Autocompletion
 
             try
             {
-                ret.AddRange(Directory.GetFiles(basePath));
+                ret.AddRange(Directory.GetFiles(basePath).Select(x => Path.GetFileName(x)));
             }
             catch
             {
@@ -50,7 +48,7 @@ namespace Dotnet.Shell.Logic.Suggestions.Autocompletion
 
             try
             {
-                ret.AddRange(Directory.GetDirectories(basePath));
+                ret.AddRange(Directory.GetDirectories(basePath).Select(x => Path.GetFileName(x) + Path.DirectorySeparatorChar));
             }
             catch
             {
