@@ -64,7 +64,15 @@ namespace Dotnet.Shell.Logic.Compilation
 
                     while (line != null)
                     {
-                        singleLineComments.Where(x => line.EndsWith(x)).ToList().ForEach(matchingComment => { line = line.Remove(line.Length - matchingComment.Length); });
+                        var matchComments = singleLineComments
+                            .Where(x => line.EndsWith(x))
+                            .Distinct()
+                            .ToList();
+
+                        matchComments.ForEach(matchingComment => 
+                        { 
+                            line = line.Remove(line.Length - matchingComment.Length); 
+                        });
                         var whitespaceRemovedLine = line.Trim();
 
                         // add the line to anything handling blocks

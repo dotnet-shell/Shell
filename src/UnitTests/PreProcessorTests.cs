@@ -234,6 +234,38 @@ var exec=`cat $testNum$ $testStr$`;";
         }
 
         [TestMethod]
+        public async Task StripComments_LargeBlockAsync()
+        {
+            var testString = @"
+// {
+//      if (powerline == null && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+//      {
+//         var powerlineHelpOut=`which powerline`;
+//          powerline = !string.IsNullOrWhiteSpace(powerlineHelpOut);
+//      }
+
+//      if (powerline == true)
+//      {
+//          string powerLinePrompt=`powerline-render shell left --last-exit-code=$Shell.LastExitCode$`;
+//          return new ColorString(""!"", Color.Green, Color.LightBlue) + ColorString.FromRawANSI( powerLinePrompt );
+//      }
+//      else
+//      {
+//          return new ColorString(""!"" + Environment.UserName + ""@"" + Environment.MachineName, Color.Green) + new ColorString("" "" + Shell.WorkingDirectory + "">"", Color.Blue) + "" "";
+//      }
+// };
+            ";
+
+            using (var ms = new MemoryStream())
+            {
+                var fakeShell = new Shell();
+                var result = await (new SourceProcessor()).ProcessAsync(testString);
+
+                Assert.AreEqual(string.Empty, result);
+            }
+        }
+
+        [TestMethod]
         public void BackTickCommand_InternalExtractions()
         {
             BacktickCommand cmd = new();
