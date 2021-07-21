@@ -1,6 +1,6 @@
 <h1 align="center">Welcome to dotnet-shell the C# script compatible shell</h1>
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-0.1-blue.svg?cacheSeconds=2592000" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.0-blue.svg?cacheSeconds=2592000" />
   <a href="https://en.wikipedia.org/wiki/MIT_License" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
   </a>
@@ -11,6 +11,10 @@
 
 dotnet-shell is a replacement for your *Unix shell (bash,sh,dash etc) that brings C#/Dotnet to the command line in a familiar and Bash-like syntax. It combines the best of C# with the shell commands you already know. If you've used [dotnetscript](https://github.com/filipw/dotnet-script)
 or [nake](https://github.com/yevhen/Nake/blob/master/README.md) you will feel right at home. Best of all it is easy to take your existing Unix shell scripts and port them to dotnet-shell format.
+
+<p align="center">
+  <img width="706" src="https://dotnet-shell.github.io/demo.gif">
+</p>
 
 dotnet-shell acts as a meta shell that sits on top of your system shell (Bash/PowerShell etc). It replaces hard to remember loop/if syntax with C# and enables you to use the shell constructs that you know and can't unlearn! It works in both interactive and script modes allowing you to build variables and arguments in C# and use them easily in shell commands.
 
@@ -34,12 +38,13 @@ First you need to [install the .NET5. runtime.](https://docs.microsoft.com/en-gb
 	dotnet --info
 If you see a lot of .NET version information that starts with 5.0 then you have a working copy of the .NET runtime. dotnet-shell is a dotnet tool. It is installed by:
 
-	dotnet tool install dotnet-shell
+	dotnet tool install -g dotnet-shell
 
 | OS      | Status       |
 |---------|--------------|
 | Linux   | Stable       |
 | Windows | Experimental |
+| Mac     | Should work *untested* |
 | BSD     | Unsupported  |
 
 ## Syntax cheatsheet
@@ -96,6 +101,12 @@ echo $variable$
 
 ```
 
+### Useful tips and tricks
+Escaping input automatically - the following one liner will print escaped C#. Great for copy and pasting into your codebase.
+
+	Console.ReadLine();
+
+
 ### Command line help
 ```
   -v, --verbose               (Default: false) Set output to verbose messages.
@@ -148,7 +159,7 @@ Contributions, issues and feature requests are welcome!<br />Feel free to check 
 
 ## License
 
-Copyright © 2021 [i-am-shodan](https://github.com/i-am-shodan).<br />
+Copyright Â© 2021 [i-am-shodan](https://github.com/i-am-shodan).<br />
 This project is [MIT](https://en.wikipedia.org/wiki/MIT_License) licensed.
 
 ***

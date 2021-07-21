@@ -384,7 +384,7 @@ namespace Dotnet.Shell.API
         /// </summary>
         /// <param name="input">The command line.</param>
         /// <param name="r">The redirection conditions, if any</param>
-        /// <returns>Task<ProcessEx></returns>
+        /// <returns>Task</returns>
         public Task<ProcessEx> ExecuteAsync(string input, object r = null)
         {
             Redirection redirection = r == null ? Redirection.None : (Redirection)r;
@@ -403,7 +403,7 @@ namespace Dotnet.Shell.API
         /// </summary>
         /// <param name="input">The command line.</param>
         /// <param name="r">The redirection conditions, if any</param>
-        /// <returns>Task<ProcessEx></returns>
+        /// <returns>Task</returns>
         public ProcessEx Execute(string input, object r = null)
         {
             Redirection redirection = r == null ? Redirection.None : (Redirection)r;
