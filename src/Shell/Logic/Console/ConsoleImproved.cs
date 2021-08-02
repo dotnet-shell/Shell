@@ -126,6 +126,8 @@ namespace Dotnet.Shell.Logic.Console
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Home), OnHomeAsync);
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.End), OnEndAsync);
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Enter), OnEnterAsync);
+            AddKeyOverride(new ConsoleKeyEx(ConsoleKey.LeftArrow, ConsoleModifiers.Control), OnSkipBackwardsWordAsync);
+            AddKeyOverride(new ConsoleKeyEx(ConsoleKey.RightArrow, ConsoleModifiers.Control), OnSkipForwardWordAsync);
         }
 
         public void AddKeyOverride(ConsoleKeyEx key, Func<ConsoleImproved, ConsoleKeyEx, Task<bool>> func)
@@ -551,12 +553,13 @@ namespace Dotnet.Shell.Logic.Console
 
         private Task<bool> OnEndAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
-            return Task.Run(() => {
-
+            return Task.Run(() => 
+            {
                 if (totalExtraLinesCreated > 0)
                 {
                     currentLineIndex = totalExtraLinesCreated;
-                    implementation.CursorTop = lastPromptCursorTop + UserEnteredText.Length / (implementation.WindowWidth - 1);
+
+                    implementation.CursorTop = lastPromptCursorTop + (UserEnteredText.Length + LastPromptLength) / (implementation.WindowWidth - 1);
 
                     CursorPosition = UserEnteredText.Length;
                     // remove the first line which has the prompt
@@ -685,6 +688,61 @@ namespace Dotnet.Shell.Logic.Console
                     CursorPosition = 0;
                     implementation.WriteLine(); // todo there may already be space?
                     return true;
+                }
+                return false;
+            });
+        }
+
+        private Task<bool> OnSkipForwardWordAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        {
+            return Task.Run(async () =>
+            {
+                if (UserEnteredTextPosition + 1 < UserEnteredText.Length)
+                {
+                    var spaceIndex = UserEnteredText.ToString().IndexOf(' ', UserEnteredTextPosition + 1);
+                    if (spaceIndex == -1)
+                    {
+                        _ = await OnEndAsync(prompt, key);
+                    }
+                    else
+                    {
+                        var logicalCharsToAdvance = spaceIndex - UserEnteredTextPosition;
+                        for (int x = 0; x < logicalCharsToAdvance; x++)
+                        {
+                            _ = await OnArrowAsync(prompt, new ConsoleKeyEx(ConsoleKey.RightArrow));
+                        }
+
+                        // if we have jumped a line we might need an extra call
+                        if (UserEnteredText[UserEnteredTextPosition] != ' ')
+                        {
+                            _ = await OnArrowAsync(prompt, new ConsoleKeyEx(ConsoleKey.RightArrow));
+                        }
+                    }
+                }
+
+                return false;
+            });
+        }
+
+        private Task<bool> OnSkipBackwardsWordAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        {
+            return Task.Run(async () =>
+            {
+                if (UserEnteredTextPosition - 2 > 0)
+                {
+                    var spaceIndex = UserEnteredText.ToString().LastIndexOf(' ', UserEnteredTextPosition -2);
+                    if (spaceIndex == -1)
+                    {
+                        _ = await OnHomeAsync(prompt, key);
+                    }
+                    else
+                    {
+                        var logicalCharsToRetreat = UserEnteredTextPosition - spaceIndex - 1;
+                        for (int x = 0; x < logicalCharsToRetreat; x++)
+                        {
+                            _ = await OnArrowAsync(prompt, new ConsoleKeyEx(ConsoleKey.LeftArrow));
+                        }
+                    }
                 }
                 return false;
             });

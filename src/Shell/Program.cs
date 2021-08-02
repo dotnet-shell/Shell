@@ -119,7 +119,7 @@ namespace Dotnet.Shell
 
         private static async Task StartInteractiveModeAsync(UserExperience ux)
         {
-            using (var cts = new CancellationTokenSource())
+            using (var interactiveModeCancellationSource = new CancellationTokenSource())
             {
                 var executor = await Executer.GetDefaultExecuterAsync(errorHelper);
 
@@ -133,11 +133,11 @@ namespace Dotnet.Shell
 
                 var historyWritingTask = Task.Run(async () => {
 
-                    while (!cts.IsCancellationRequested)
+                    while (!interactiveModeCancellationSource.IsCancellationRequested)
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(60), cts.Token);
+                        await Task.Delay(TimeSpan.FromSeconds(60), interactiveModeCancellationSource.Token);
 
-                        if (!cts.IsCancellationRequested)
+                        if (!interactiveModeCancellationSource.IsCancellationRequested)
                         {
                             var localCopy = historyToWrite;
 
@@ -149,11 +149,14 @@ namespace Dotnet.Shell
                             }
                         }
                     }
-                }, cts.Token);
+                }, interactiveModeCancellationSource.Token);
+
+                CancellationTokenSource ctrlCCancellationSource = null;
 
                 Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs args) => {
                     args.Cancel = true;
                     executor?.Shell?.ForegroundProcess?.SignalTerminate();
+                    ctrlCCancellationSource?.Cancel();
                 };
 
                 if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -166,9 +169,9 @@ namespace Dotnet.Shell
                             {
                                 var waitForCtrlZ = new UnixSignal(Signum.SIGTSTP);
 
-                                Task.Run(() => waitForCtrlZ.WaitOne(), cts.Token).Wait(cts.Token);
+                                Task.Run(() => waitForCtrlZ.WaitOne(), interactiveModeCancellationSource.Token).Wait(interactiveModeCancellationSource.Token);
 
-                                if (!cts.IsCancellationRequested)
+                                if (!interactiveModeCancellationSource.IsCancellationRequested)
                                 {
                                     Console.WriteLine();
                                     executor?.Shell?.ForegroundProcess?.SignalSuspend();
@@ -217,7 +220,19 @@ namespace Dotnet.Shell
 
                     try
                     {
-                        input = await console.GetCommandAsync();
+                        using (ctrlCCancellationSource = new CancellationTokenSource())
+                        {
+                            input = await console.GetCommandAsync(ctrlCCancellationSource.Token);
+                        }
+                        ctrlCCancellationSource = null;
+                    }
+                    catch (TaskCanceledException ex)
+                    {
+                        if (!ctrlCCancellationSource.IsCancellationRequested)
+                        {
+                            errorHelper.PrettyException(ex);
+                        }
+                        continue;
                     }
                     catch (Exception ex)
                     {
@@ -246,7 +261,7 @@ namespace Dotnet.Shell
                         }
                         catch (ExitException)
                         {
-                            cts.Cancel();
+                            interactiveModeCancellationSource.Cancel();
                             await OS.WriteHistoryAsync(historyToWrite);
                             break;
                         }

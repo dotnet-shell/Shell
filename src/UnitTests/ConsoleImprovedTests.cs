@@ -368,6 +368,59 @@ namespace UnitTests
                 Assert.AreEqual(input, command);
             }
         }
+
+        [TestMethod]
+        public async Task PreviousNextWordAsync()
+        {
+            using (var ms = new MemoryStream())
+            {
+                var input = "aaa bbb ccc ddd eee xxx fff ggg yyy";
+
+                var fakeShell = new Shell();
+                fakeShell.CommandHandlers.Add((cmd) => { Assert.AreEqual(input, cmd); return cmd; });
+                fakeShell.Prompt = () => { return new ColorString("# > ", "# > "); };
+
+                var mockConsole = new MockConsole()
+                {
+                    WindowWidth = 12,
+                };
+                var console = new ConsoleImproved(mockConsole, fakeShell);
+
+                console.DisplayPrompt();
+
+                foreach (var character in new[] { ConsoleKey.A, ConsoleKey.B, ConsoleKey.C, ConsoleKey.D, ConsoleKey.E, ConsoleKey.F, ConsoleKey.G })
+                {
+                    for (int x = 0; x < 3; x++)
+                    {
+                        mockConsole.keys.Enqueue(new ConsoleKeyEx(character));
+                    }
+
+                    if (character != ConsoleKey.G)
+                    {
+                        mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.Spacebar));
+                    }
+                }
+
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.LeftArrow, ConsoleModifiers.Control));
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.LeftArrow, ConsoleModifiers.Control));
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.X));
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.X));
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.X));
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.Spacebar));
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.RightArrow, ConsoleModifiers.Control));
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.RightArrow, ConsoleModifiers.Control));
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.Spacebar));
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.Y));
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.Y));
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.Y));
+                // aaa bbb ccc ddd eee xxx fff ggg yyy
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.Enter));
+
+                var command = await console.GetCommandAsync(CancellationToken.None);
+
+                Assert.AreEqual(input, command);
+            }
+        }
     }
 
     internal class MockConsole : IConsole
@@ -402,6 +455,10 @@ namespace UnitTests
             {
                 final = '\t';
             }
+            else if (keyEx.Key.Value == ConsoleKey.Spacebar)
+            {
+                final = ' ';
+            }
             else if (keyEx.Key.Value == ConsoleKey.Enter)
             {
                 final = '\r';
@@ -428,7 +485,7 @@ namespace UnitTests
             }
 
             CursorLeft++;
-            return new ConsoleKeyInfo(final, keyEx.Key.Value, false, false, false);
+            return new ConsoleKeyInfo(final, keyEx.Key.Value, keyEx.Modifier == ConsoleModifiers.Shift, keyEx.Modifier == ConsoleModifiers.Alt, keyEx.Modifier == ConsoleModifiers.Control);
         }
 
         public Task RestoreAsync()
