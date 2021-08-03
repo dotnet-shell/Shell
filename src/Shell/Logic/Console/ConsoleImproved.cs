@@ -128,6 +128,7 @@ namespace Dotnet.Shell.Logic.Console
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Enter), OnEnterAsync);
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.LeftArrow, ConsoleModifiers.Control), OnSkipBackwardsWordAsync);
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.RightArrow, ConsoleModifiers.Control), OnSkipForwardWordAsync);
+            AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Backspace, ConsoleModifiers.Control), OnDeleteLastWordAsync);
         }
 
         public void AddKeyOverride(ConsoleKeyEx key, Func<ConsoleImproved, ConsoleKeyEx, Task<bool>> func)
@@ -745,6 +746,34 @@ namespace Dotnet.Shell.Logic.Console
                     }
                 }
                 return false;
+            });
+        }
+
+        private Task<bool> OnDeleteLastWordAsync(ConsoleImproved prompt, ConsoleKeyEx key)
+        {
+            return Task.Run(async () =>
+            {
+                if (UserEnteredTextPosition - 2 > 0)
+                {
+                    var spaceIndex = UserEnteredText.ToString().LastIndexOf(' ', UserEnteredTextPosition - 2);
+                    if (spaceIndex == -1)
+                    {
+                        UserEnteredText.Clear();
+                        ClearUserEntry();
+                        implementation.CursorTop = lastPromptCursorTop;
+                        implementation.CursorLeft = LastPromptLength;
+                        CursorPosition = LastPromptLength;
+                    }
+                    else
+                    {
+                        var logicalCharsToRetreat = UserEnteredTextPosition - spaceIndex - 1;
+                        for (int x = 0; x < logicalCharsToRetreat; x++)
+                        {
+                            _ = await OnBackSpaceAsync(prompt, key);
+                        }
+                    }
+                }
+                return true;
             });
         }
     }
