@@ -16,7 +16,8 @@
     <ToolCommandName>dotnet-shell</ToolCommandName>
     <Authors>dotnet-shell</Authors>
     <Product>dotnet-shell</Product>
-    <Version>1.0.0.9</Version>
+    <Version>1.0.0.10</Version>
+    <AssemblyVersion>1.0.0.10</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
