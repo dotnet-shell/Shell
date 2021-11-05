@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace Dotnet.Shell.UI
 {
-    internal class ErrorDisplay : IOptionsMonitor<ConsoleLoggerOptions>
+    public class ErrorDisplay : IOptionsMonitor<ConsoleLoggerOptions>
     {
         private readonly IConsole console;
         private readonly ConsoleLoggerOptions _consoleLoggerOptions;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Dotnet.Shell.Logic.Compilation
 {
-    internal class PreProcessorSyntaxException : Exception
+    public class PreProcessorSyntaxException : Exception
     {
         public List<int> RelatedLines { get; } = new List<int>();
         public int Line { get; }

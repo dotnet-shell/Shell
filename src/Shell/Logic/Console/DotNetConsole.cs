@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Dotnet.Shell.Logic.Console
 {
-    internal class DotNetConsole : IConsole
+    public class DotNetConsole : IConsole
     {
         public int CursorLeft { get => System.Console.CursorLeft; set { System.Console.CursorLeft = value; } }
         public int CursorTop { get => System.Console.CursorTop; set { System.Console.CursorTop = value; } }

@@ -15,7 +15,7 @@ namespace Dotnet.Shell.UI.Standard
         public int SelectedItem;
     }
 
-    internal class HistorySearch
+    public class HistorySearch
     {
         private readonly IConsole implementation;
         private readonly Dotnet.Shell.API.Shell shell;

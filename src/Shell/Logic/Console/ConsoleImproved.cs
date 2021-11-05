@@ -228,7 +228,11 @@ namespace Dotnet.Shell.Logic.Console
             get => userText.GetLogicCursorPosition(currentLineIndex, CursorPosition, LastPromptLength);
         }
 
-        internal object Tag = null;
+        /// <summary>
+        /// An optional object to store state in
+        /// </summary>
+        public object Tag = null;
+
         internal int LastPromptLength = 0;
 
         private ConsoleTextSpan userText = new Console.ConsoleTextSpan();

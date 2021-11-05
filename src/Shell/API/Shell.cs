@@ -141,7 +141,11 @@ namespace Dotnet.Shell.API
         /// </summary>
         public ProcessEx LastExecutedProcess = null;
 
-        internal Task HistoryLoadedTask = Task.CompletedTask;
+        /// <summary>
+        /// The history loaded task, wait on this to ensure all history elements have been loaded into memory
+        /// </summary>
+        public Task HistoryLoadedTask = Task.CompletedTask;
+
         internal List<ProcessEx> backgroundProcesses = new();
         internal Dictionary<string, string> csAliases = new();
         internal Dictionary<string, string> cmdAliases = new();
@@ -367,7 +371,7 @@ namespace Dotnet.Shell.API
         /// </summary>
         /// <param name="input">The user input command</param>
         /// <returns>Command with possible alias replacement</returns>
-        internal string TryReplaceWithCSAlias(string input)
+        public string TryReplaceWithCSAlias(string input)
         {
             SplitCommandLine(input, out string exe, out string args);
 

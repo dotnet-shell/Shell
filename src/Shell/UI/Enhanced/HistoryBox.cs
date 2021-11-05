@@ -14,7 +14,7 @@ using Dotnet.Shell.Logic.Execution;
 
 namespace Dotnet.Shell.UI.Enhanced
 {
-    internal class HistoryBox : IInputListener
+    public class HistoryBox : IInputListener
     {
         private bool quit = false;
         private bool updateSearch = false;

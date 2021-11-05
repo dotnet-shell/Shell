@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Dotnet.Shell.API
 {
-    internal class HistoryAPI
+    public class HistoryAPI
     {
         public static async Task SearchResultAsync(string term, int port, string token)
         {

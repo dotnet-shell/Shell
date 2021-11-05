@@ -73,7 +73,7 @@ namespace Dotnet.Shell.Logic.Suggestions
         }
     }
 
-    class Suggestions
+    public class Suggestions
     {
         private readonly CmdSuggestions cmdSuggestionsEngine;
         private readonly CSharpSuggestions cSharpSuggestionsEngine;
