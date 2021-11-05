@@ -99,5 +99,34 @@ namespace Dotnet.Shell.Logic.Console
         ///   <c>true</c> if [key availiable]; otherwise, <c>false</c>.
         /// </value>
         bool KeyAvailiable { get; }
+
+        /// <summary>
+        /// Clears the current line from given position.
+        /// </summary>
+        /// <param name="pos">If set the current line will be cleared from this position, cursor will be moved here.</param>
+        void ClearCurrentLine(int pos = -1);
+
+        /// <summary>
+        /// Saves the cursor position.
+        /// </summary>
+        void SaveCursorPosition();
+
+        /// <summary>
+        /// Restores the cursor position.
+        /// </summary>
+        /// <param name="onRestore">The on restore.</param>
+        void RestoreCursorPosition(Action onRestore = null);
+
+        /// <summary>
+        /// Moves the cursor down.
+        /// </summary>
+        /// <param name="lines">The lines.</param>
+        void MoveCursorDown(int lines);
+
+        /// <summary>
+        /// Moves the cursor up.
+        /// </summary>
+        /// <param name="lines">The lines.</param>
+        void MoveCursorUp(int lines);
     }
 }

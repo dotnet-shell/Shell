@@ -41,7 +41,7 @@ namespace Dotnet.Shell.UI.Enhanced
 
             await console.RestoreAsync();
 
-            prompt.DisplayPrompt(command);
+            prompt.DisplayPrompt(command, false);
 
             return false;
         }
@@ -65,11 +65,11 @@ namespace Dotnet.Shell.UI.Enhanced
 
             if (result.IsCompletedSuccessfully)
             {
-                prompt.DisplayPrompt(await result);
+                prompt.DisplayPrompt(await result, false);
             }
             else
             {
-                prompt.DisplayPrompt("Error");
+                prompt.DisplayPrompt("Error", false);
             }
 
             return false;

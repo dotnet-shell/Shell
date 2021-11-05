@@ -20,6 +20,21 @@ namespace UnitTests
 
         public bool KeyAvailiable => throw new NotImplementedException();
 
+        public void ClearCurrentLine(int pos = -1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void MoveCursorDown(int lines)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void MoveCursorUp(int lines)
+        {
+            throw new NotImplementedException();
+        }
+
         public ConsoleKeyInfo ReadKey()
         {
             Assert.Fail();
@@ -32,10 +47,20 @@ namespace UnitTests
             throw new Exception();
         }
 
+        public void RestoreCursorPosition(Action onRestore = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task SaveAsync()
         {
             Assert.Fail();
             throw new Exception();
+        }
+
+        public void SaveCursorPosition()
+        {
+            throw new NotImplementedException();
         }
 
         public void Write(string text = null)

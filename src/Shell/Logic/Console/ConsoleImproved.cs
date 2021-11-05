@@ -3,27 +3,24 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-[assembly: InternalsVisibleTo("UnitTests")]
-
 namespace Dotnet.Shell.Logic.Console
 {
-    internal class ConsoleKeyEx : IEquatable<ConsoleKeyEx>
+    public class ConsoleKeyEx : IEquatable<ConsoleKeyEx>
     {
-        public ConsoleKey ?Key;
+        public ConsoleKey? Key;
         public ConsoleModifiers Modifier = 0;
 
-        public ConsoleKeyEx(ConsoleKey ?k, ConsoleModifiers m = 0)
+        public ConsoleKeyEx(ConsoleKey? k, ConsoleModifiers m = 0)
         {
             this.Key = k;
             this.Modifier = m;
         }
 
-        public static ConsoleKeyEx Any => new(null, 0);
+        public static ConsoleKeyEx Any => new ConsoleKeyEx(null, 0);
 
         public override bool Equals(object y)
         {
@@ -60,56 +57,187 @@ namespace Dotnet.Shell.Logic.Console
         }
     }
 
-    internal class ConsoleImproved
+    internal class ConsoleTextSpan
     {
-        public int CursorPosition = 0;
-        public StringBuilder UserEnteredText { get; private set; } = new StringBuilder();
-        public List<KeyValuePair<ConsoleKeyEx, Func<ConsoleImproved, ConsoleKeyEx, Task<bool>>>> KeyOverrides = new();
-        public int UserEnteredTextPosition
+        private StringBuilder userText = new StringBuilder();
+
+        public char this[int i]
         {
-            get
+            get { return userText[i]; }
+        }
+
+        public int GetLogicCursorPosition(int currentLineIndex, int xPos, int lengthOfPrompt)
+        {
+            var ret = 0;
+
+            if (userText.Length == 0)
             {
-                var ret = 0;
-
-                if (currentLineIndex != 0)
-                {
-                    ret += (Width - 1) - LastPromptLength; // first line
-                    for (int x = 0; x < currentLineIndex - 1; x++) // for each line apart from the last
-                    {
-                        ret += Width - 1;
-                    }
-
-                    ret += CursorPosition; // for the last line just use the cursorpos
-                }
-                else
-                {
-                    ret = CursorPosition - LastPromptLength;
-                }
-
-#if DEBUG
-                if (ret < 0)
-                {
-                    throw new InvalidOperationException("UserEnteredTextPosition is negative");
-                }
-#endif
-
                 return ret;
             }
+
+            if (currentLineIndex < 0)
+            {
+                throw new InvalidOperationException("currentLineIndex is invalid");
+            }
+
+            if (xPos < 0)
+            {
+                throw new InvalidOperationException("xPos is invalid");
+            }
+
+            if (currentLineIndex != 0 && currentLineIndex > Lines)
+            {
+                throw new InvalidOperationException("currentLineIndex is invalid: > total lines");
+            }
+
+            if (currentLineIndex == 0 || Lines == 0)
+            {
+                ret = xPos - lengthOfPrompt;
+            }
+            else
+            {
+                // multiline
+                var lines = userText.ToString().Split('\n');
+
+                // sum the length of lines under the one we want
+                for (int x = 0; x < currentLineIndex; x++)
+                {
+                    ret += lines[x].Length + 1;
+                }
+
+                ret += xPos;
+            }
+
+#if DEBUG
+            if (ret < 0)
+            {
+                throw new InvalidOperationException("userTextPosition is negative");
+            }
+
+            if (ret > userText.Length)
+            {
+                throw new InvalidOperationException("userTextPosition is out of bounds");
+            }
+#endif
+
+            return ret;
         }
-        public Dotnet.Shell.API.Shell Shell { get; private set; }
+
+        private int CalculateTotalNumberOfLines()
+        {
+            int totalLines = 0;
+
+            for (int x = 0; x < userText.Length; x++)
+            {
+                if (userText[x] == '\n')
+                {
+                    totalLines++;
+                }
+            }
+
+            return totalLines;
+        }
+
+        public void Append(string s) => userText.Append(s);
+
+        public void Append(char s) => userText.Append(s);
+
+        public void Insert(int pos, string s)
+        {
+            userText = userText.Insert(pos, s);
+        }
+
+        public void Insert(int pos, char s, int promptLength, int lineWidth)
+        {
+            userText = userText.Insert(pos, s);
+
+            ReflowText(promptLength, lineWidth);
+        }
+
+        private void ReflowText(int promptLength, int lineWidth)
+        {
+            // replace \<\n> with \0 to preserve, remove any newlines
+            var tempText = userText.ToString().Replace("\\\n", "\0").Replace("\n", string.Empty);
+
+            var baseString = tempText.ToString();
+            var firstLine = new string(baseString.Take(lineWidth - promptLength).ToArray());
+
+            userText.Clear();
+            userText.Append(firstLine);
+
+            // only add \n if we need more lines
+            if (baseString.Length >= lineWidth - promptLength)
+            {
+                userText.Append('\n');
+            }
+
+            for (int x = firstLine.Count(); x <= userText.Length; x += lineWidth)
+            {
+                var line = new string(baseString.Skip(x).Take(lineWidth).ToArray());
+                userText.Append(line);
+
+                if (line.Count() == lineWidth)
+                {
+                    userText.Append("\n");
+                }
+            }
+
+            // restore forced newlines
+            userText = userText.Replace("\0", "\\\n");
+        }
+
+        public void Remove(int pos, int length, int promptLength, int lineWidth)
+        {
+            // check if we are on a newline boundary, if we are remove both the newline and the char
+            if (userText[pos] == '\n')
+            {
+                userText = userText.Remove(pos -1, length+1);
+            }
+            else
+            {
+                userText = userText.Remove(pos, length);
+            }
+
+            ReflowText(promptLength, lineWidth);
+        }
+
+        public int Length => userText.Length;
+
+        public int Lines => CalculateTotalNumberOfLines();
+
+        public override string ToString() => userText.ToString();
+
+        public bool IsForcedMultiline { get; set; } = false;
+    }
+
+    public class ConsoleImproved
+    {
+        public int CursorPosition = 0;
+        public List<KeyValuePair<ConsoleKeyEx, Func<ConsoleImproved, ConsoleKeyEx, Task<bool>>>> KeyOverrides = new List<KeyValuePair<ConsoleKeyEx, Func<ConsoleImproved, ConsoleKeyEx, Task<bool>>>>();
+
+        public API.Shell Shell { get; private set; }
         public int Width => implementation.WindowWidth;
+
+        public string UserEnteredText
+        {
+            get => userText.ToString();
+            set { userText = new ConsoleTextSpan(); userText.Append(value); }
+        }
+        public int UserEnteredTextPosition
+        {
+            get => userText.GetLogicCursorPosition(currentLineIndex, CursorPosition, LastPromptLength);
+        }
 
         internal object Tag = null;
         internal int LastPromptLength = 0;
 
+        private ConsoleTextSpan userText = new Console.ConsoleTextSpan();
         private readonly IConsole implementation;
         private int CurrentHistoryIndex;
         private int LastRawPosition;
         private ConsoleKeyInfo LastKeyRead;
 
-        private int totalExtraLinesCreated;
         private int currentLineIndex = 0;
-        private int lastPromptCursorTop = 0;
 
         public ConsoleImproved(IConsole consoleImplementation, Dotnet.Shell.API.Shell shell)
         {
@@ -129,6 +257,21 @@ namespace Dotnet.Shell.Logic.Console
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.LeftArrow, ConsoleModifiers.Control), OnSkipBackwardsWordAsync);
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.RightArrow, ConsoleModifiers.Control), OnSkipForwardWordAsync);
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Backspace, ConsoleModifiers.Control), OnDeleteLastWordAsync);
+        }
+
+        public void ReplaceUserEntryAtPosition(string text, int position)
+        {
+            using (new HideCursor(implementation))
+            {
+                if (position < userText.Length)
+                {
+                    userText.Remove(position, UserEnteredText.Length - position, LastPromptLength, Width - 1);
+                }
+                userText.Insert(position, text);
+
+                ClearUserEntry();
+                Write(userText.ToString(), true);
+            }
         }
 
         public void AddKeyOverride(ConsoleKeyEx key, Func<ConsoleImproved, ConsoleKeyEx, Task<bool>> func)
@@ -151,78 +294,53 @@ namespace Dotnet.Shell.Logic.Console
             implementation.WriteLine(text.TextWithFormattingCharacters);
         }
 
-        public void Write(string text = "", bool wrapText = false)
+        public void Write(string text = "", bool multiline = false)
         {
-            // remove any multiline padding characters
-            //text = text.Replace("\0", "");
+            var textByNewline = text.Split('\n');
+            bool isSingleLine = textByNewline.Length == 1;
 
-            if (wrapText)
+            if (isSingleLine || !multiline) // only write upto the window edge if wrapText == false
             {
-                var lastLineLength = 0;
-                while (text.Length != 0)
-                {
-                    // amount to write on this line
-                    var maxTextToWrite = Math.Min(text.Length, implementation.WindowWidth - CursorPosition - 1);
+                text = text.Replace("\n", string.Empty);
 
-                    implementation.WriteLine(text.Substring(0, maxTextToWrite));
-                    text = text.Remove(0, maxTextToWrite);
-                    
-                    CursorPosition = 0;
-                    lastLineLength = maxTextToWrite;
-                }
-                CursorPosition = lastLineLength;
-            }
-            else
-            {
-                // only write upto the window edge if wrapText == false
                 var maxTextToWrite = Math.Min(text.Length, implementation.WindowWidth - CursorPosition - 1);
                 implementation.CursorLeft = CursorPosition;
                 CursorPosition += maxTextToWrite;
 
                 implementation.Write(text.Length != maxTextToWrite ? text.Substring(0, maxTextToWrite) : text);
-            }          
+            }
+            else
+            {
+                // multiline
+                var firstLine = textByNewline[0].Take(implementation.WindowWidth - LastPromptLength - 1).ToArray();
+                implementation.WriteLine(new string(firstLine));
+
+                for (int x = 1; x < textByNewline.Length - 1; x++)
+                {
+                    implementation.WriteLine(new string(textByNewline[x].Take(implementation.WindowWidth).ToArray()));
+                }
+
+                var lastLine = new string(textByNewline.Last().Take(implementation.WindowWidth).ToArray());
+                implementation.Write(lastLine);
+                currentLineIndex = textByNewline.Length - 1;
+
+                CursorPosition = lastLine.Length;
+            }
         }
 
         public void Write(ColorString text)
         {
             implementation.CursorLeft = CursorPosition;
-            bool useCursorLeft = implementation.CursorLeft == 0;
 
             // write and remove any multiline padding characters
             implementation.Write(text.TextWithFormattingCharacters/*.Replace("\0", "")*/);
 
             CursorPosition += text.Length;
-
-            if (useCursorLeft)
-            {
-                CursorPosition = implementation.CursorLeft;
-            }
-            else
-            {
-                CursorPosition += text.Length;
-            }
-        }
-
-        private int CalculateTotalNumberOfLines()
-        {
-            int extraLinesCreated = 0;
-
-            var totalText = UserEnteredText.Length;
-            // remove the first line which has the prompt
-            totalText -= (Width - 1) - LastPromptLength;
-
-            while (totalText > 0)
-            {
-                totalText -= Width - 1;
-                extraLinesCreated++;
-            }
-
-            return extraLinesCreated;
         }
 
         private async Task<ConsoleKeyEx> ReadKeyAsync(bool addToInternalBuffer = true, CancellationToken token = default)
         {
-            LastRawPosition = implementation.CursorLeft;
+            LastRawPosition = (CursorPosition + 1 >= Width) ? 0 : CursorPosition + 1;
 
             var key = await Task.Run(async () =>
             {
@@ -250,68 +368,61 @@ namespace Dotnet.Shell.Logic.Console
             // increment pos if this is printable
             if (addToInternalBuffer && !char.IsControl(key.KeyChar) && !key.Modifiers.HasFlag(ConsoleModifiers.Control) && !key.Modifiers.HasFlag(ConsoleModifiers.Alt))
             {
-                var oldTextPosition = UserEnteredTextPosition;
+                var oldTextPosition = userText.GetLogicCursorPosition(currentLineIndex, CursorPosition, LastPromptLength);
 
                 using (new HideCursor(implementation))
                 {
                     // if adding a character would take us over the edge of the console window we need to add a newline
-                    if ((implementation.CursorLeft + 1) % implementation.WindowWidth == 0)
+                    if ((LastRawPosition + 1) % implementation.WindowWidth == 0)
                     {
                         currentLineIndex++;
                         implementation.WriteLine(); // todo there may already be space?
-                        implementation.CursorLeft = 0;
+                        //implementation.CursorLeft = 0;
                         CursorPosition = 0;
 
-                        if (oldTextPosition == UserEnteredText.Length)
+                        if (oldTextPosition == userText.Length)
                         {
                             // just append char
-                            UserEnteredText.Append(key.KeyChar);
+                            userText.Append(key.KeyChar);
+                            userText.Append('\n');
                         }
                         else
                         {
-                            UserEnteredText = UserEnteredText.Insert(oldTextPosition, key.KeyChar);
+                            userText.Insert(oldTextPosition, "\n" + key.KeyChar);
                         }
                     }
                     else
                     {
 
                         // we now need to determine if we have to do a full redraw or can just add a character
-                        if (oldTextPosition == UserEnteredText.Length)
+                        if (oldTextPosition == userText.Length)
                         {
                             // just append char
-                            UserEnteredText.Append(key.KeyChar);
+                            userText.Append(key.KeyChar);
                         }
                         else
                         {
                             // insert at specified position
-                            UserEnteredText = UserEnteredText.Insert(oldTextPosition, key.KeyChar);
+                            userText.Insert(oldTextPosition, key.KeyChar, LastPromptLength, Width -1);
 
                             // now clear everything typed in by the user
                             var oldPos = CursorPosition;
                             var oldTop = implementation.CursorTop;
-
-                            ClearUserEntry();
+                            var oldCurrentLineInde = currentLineIndex;
 
                             // write from the start of the prompt
-                            implementation.CursorTop = lastPromptCursorTop;
-                            CursorPosition = LastPromptLength;
-                            Write(UserEnteredText.ToString(), totalExtraLinesCreated != 0);
+                            ClearUserEntry();
+                            Write(userText.ToString(), userText.Lines != 0);
 
                             implementation.CursorTop = oldTop;
                             CursorPosition = oldPos;
+                            currentLineIndex = oldCurrentLineInde;
                         }
-
 
                         CursorPosition++;
                         implementation.CursorLeft = CursorPosition;
                     }
                 }
-            }
-
-            var numberOfExtraLines = CalculateTotalNumberOfLines();
-            if (numberOfExtraLines > totalExtraLinesCreated)
-            {
-                totalExtraLinesCreated = numberOfExtraLines;
             }
 
             return new ConsoleKeyEx(key.Key, key.Modifiers);
@@ -351,7 +462,8 @@ namespace Dotnet.Shell.Logic.Console
             }
 
             // replace any padding characters with the null string
-            var command = UserEnteredText.Replace("\\\0", "").Replace("\0", "").ToString();
+            // nop newlines
+            var command = userText.ToString().Replace("\\\n", string.Empty).Replace("\n", string.Empty).Replace("\\\0", string.Empty).Replace("\0", string.Empty);
 
             foreach (var handler in Shell.CommandHandlers)
             {
@@ -368,99 +480,66 @@ namespace Dotnet.Shell.Logic.Console
             return command;
         }
 
-        public void DisplayPrompt()
+        public void DisplayPrompt(bool forcePromptOntoNewLine = true)
         {
             // first we need to check if std out has put us in an odd location
             // if it has, by say cat-ing a file without a newline we want to add a newline
             // the behaviour is different from bash but looks so much better and stops the next
             // logic clobbering stdout
 
-            if (implementation.CursorLeft != 0)
+            if (forcePromptOntoNewLine && implementation.CursorLeft != 0)
             {
                 WriteLine();
             }
 
-            implementation.CursorLeft = 0;
-            CursorPosition = 0;
-            totalExtraLinesCreated = 0;
+            Reset();
+
+            implementation.SaveCursorPosition();
 
             var prompt = Shell.Prompt();
             Write(prompt);
 
-            LastPromptLength = implementation.CursorLeft;
-            lastPromptCursorTop = implementation.CursorTop;
-            
-            UserEnteredText.Clear();
-            ClearUserEntry();
-            implementation.CursorLeft = LastPromptLength;
+            LastPromptLength = prompt.Text.Length;
+        }
 
-            totalExtraLinesCreated = 0;
+        public void Reset()
+        {
+            userText = new ConsoleTextSpan();
+            implementation.CursorLeft = 0;
+            CursorPosition = 0;
             currentLineIndex = 0;
+            LastPromptLength = 0;
         }
 
-        public void DisplayPrompt(string text)
+        public void DisplayPrompt(string text, bool forcePromptOntoNewLine)
         {
-            DisplayPrompt();
+            DisplayPrompt(forcePromptOntoNewLine);
+            userText.Append(text);
 
-            Write(text);
-            UserEnteredText.Append(text);
+            Write(text, false);
         }
 
-        public void ClearUserEntry(int pos = -1)
+        public void ClearUserEntry(int numLinesToClear = -1)
         {
-            if (pos == -1 && Shell != null)
-            {
-                pos = LastPromptLength;
-            }
-            else if (pos == -1)
-            {
-                pos = 0;
-            }
-            else
-            {
-                pos += LastPromptLength;
-            }
+            MoveCursorToStartOfPrompt();
+            implementation.ClearCurrentLine(LastPromptLength);
 
-            if (pos > implementation.WindowWidth)
-            {
-                throw new NotImplementedException("Cannot write beyond window width...yet");
-            }
+            bool isMultiLine = userText.Lines != 0;
 
-            if (totalExtraLinesCreated != 0)
+            if (isMultiLine || numLinesToClear != -1)
             {
-                for (int x = 0; x <= totalExtraLinesCreated; x++)
+                var totalLines = Math.Max(userText.Lines, numLinesToClear);
+
+                for (int x = 0; x < totalLines; x++)
                 {
-                    implementation.CursorTop = lastPromptCursorTop + x;
-                    CursorPosition = x == 0 ? pos : 0;
-                    var eraseWidth = x == 0 ? implementation.WindowWidth - pos - 1 : implementation.WindowWidth - 1;
-
-                    Write(new string(' ', eraseWidth));
+                    implementation.MoveCursorDown(1);
+                    currentLineIndex++;
+                    implementation.ClearCurrentLine();
                 }
 
-                implementation.CursorLeft = pos;
-                implementation.CursorTop = lastPromptCursorTop;
-                CursorPosition = pos;
+                MoveCursorToStartOfPrompt();
+                currentLineIndex = 0;
             }
-            else
-            {
-                var oldPos = CursorPosition;
-                CursorPosition = pos;
-                Write(new string(' ', implementation.WindowWidth - pos - 1));
-                CursorPosition = oldPos;
-            }
-        }
-
-        public void ReplaceUserEntryAtPosition(string text, int userPos)
-        {
-            implementation.CursorVisible = false;
-            ClearUserEntry(userPos);
-            CursorPosition = LastPromptLength + userPos;
-            Write(text);
-
-            UserEnteredText = UserEnteredText.Remove(userPos, UserEnteredText.Length - userPos).Insert(userPos, text);
-
-            LastRawPosition = implementation.CursorLeft;
-            implementation.CursorVisible = true;
         }
 
         public void IgnoreTab()
@@ -475,19 +554,20 @@ namespace Dotnet.Shell.Logic.Console
         {
             return Task.Run(() =>
             {
-                if (UserEnteredTextPosition > 0)
+                var userTextPosition = userText.GetLogicCursorPosition(currentLineIndex, CursorPosition, LastPromptLength);
+                if (userTextPosition > 0)
                 {
                     using (new HideCursor(implementation))
                     {
                         var originalCursorPos = CursorPosition;
                         var originalCursorTop = implementation.CursorTop;
+                        var originalLineIndex = currentLineIndex;
 
-                        UserEnteredText = UserEnteredText.Remove(UserEnteredTextPosition - 1, 1);
-                        ClearUserEntry();
+                        userText.Remove(userTextPosition - 1, 1, LastPromptLength, Width -1);
+                        ClearUserEntry(currentLineIndex);
 
-                        CursorPosition = LastPromptLength;
-                        implementation.CursorLeft = CursorPosition;
-                        Write(UserEnteredText.ToString(), totalExtraLinesCreated != 0);
+                        Write(userText.ToString(), true);
+                        currentLineIndex = originalLineIndex;
 
                         if (originalCursorPos - 1 >= 0)
                         {
@@ -499,16 +579,21 @@ namespace Dotnet.Shell.Logic.Console
                             CursorPosition = implementation.WindowWidth - 2;
                             originalCursorTop--;
                             currentLineIndex--;
+
+                            if (currentLineIndex < 0)
+                            {
+                                currentLineIndex = 0;
+                            }
                         }
 
-                       
                         implementation.CursorLeft = CursorPosition;
                         implementation.CursorTop = originalCursorTop;
                     }
                 }
                 else
                 {
-                    implementation.CursorLeft = LastPromptLength;
+                    implementation.RestoreCursorPosition();
+                    DisplayPrompt(false);
                 }
 
                 return false;
@@ -519,20 +604,25 @@ namespace Dotnet.Shell.Logic.Console
         {
             return Task.Run(() =>
             {
-                if (UserEnteredTextPosition < UserEnteredText.Length)
+                var userTextPosition = userText.GetLogicCursorPosition(currentLineIndex, CursorPosition, LastPromptLength);
+                if (userTextPosition < userText.Length)
                 {
-                    implementation.CursorVisible = false;
-                    var originalCursorPos = CursorPosition;
+                    using (new HideCursor(implementation))
+                    {
+                        var originalCursorPos = CursorPosition;
+                        var originalCursorTop = implementation.CursorTop;
+                        var originalLineIndex = currentLineIndex;
 
-                    UserEnteredText = UserEnteredText.Remove(UserEnteredTextPosition, 1);
-                    ClearUserEntry();
-                    CursorPosition = LastPromptLength;
-                    Write(UserEnteredText.ToString());
+                        userText.Remove(userTextPosition, 1, LastPromptLength, Width -1);
+                        ClearUserEntry();
+                        CursorPosition = LastPromptLength;
+                        Write(userText.ToString(), true);
+                        currentLineIndex = originalLineIndex;
 
-                    CursorPosition = originalCursorPos;
-                    implementation.CursorLeft = CursorPosition;
-
-                    implementation.CursorVisible = true;
+                        CursorPosition = originalCursorPos;
+                        implementation.CursorLeft = CursorPosition;
+                        implementation.CursorTop = originalCursorTop;
+                    }
                 }
 
                 return false;
@@ -541,41 +631,34 @@ namespace Dotnet.Shell.Logic.Console
 
         private Task<bool> OnHomeAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
-            return Task.Run(() => { 
-                CursorPosition = LastPromptLength;
-                currentLineIndex = 0;
-
-                implementation.CursorLeft = CursorPosition;
-                implementation.CursorTop = lastPromptCursorTop;
-
+            return Task.Run(() => {
+                prompt.MoveCursorToStartOfPrompt();
                 return false;
             });
         }
 
         private Task<bool> OnEndAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
-            return Task.Run(() => 
+            return Task.Run(() =>
             {
-                if (totalExtraLinesCreated > 0)
+                if (userText.Lines > 0)
                 {
-                    currentLineIndex = totalExtraLinesCreated;
+                    var numberOfLinesToMoveDown = userText.Lines - currentLineIndex;
 
-                    implementation.CursorTop = lastPromptCursorTop + (UserEnteredText.Length + LastPromptLength) / (implementation.WindowWidth - 1);
-
-                    CursorPosition = UserEnteredText.Length;
-                    // remove the first line which has the prompt
-                    CursorPosition -= (Width - 1) - LastPromptLength;
-
-                    for (int x = 0; x < currentLineIndex - 1; x++) // for each line apart from the first
+                    if (numberOfLinesToMoveDown != 0)
                     {
-                        CursorPosition -= Width - 1;
+                        implementation.MoveCursorDown(numberOfLinesToMoveDown);
                     }
 
+                    currentLineIndex = userText.Lines;
+
+                    var lengthOfLastLine = userText.ToString().Split('\n').Last().Length;
+                    CursorPosition = lengthOfLastLine;
                     implementation.CursorLeft = CursorPosition;
                 }
                 else
                 {
-                    CursorPosition = LastPromptLength + UserEnteredText.Length;
+                    CursorPosition = LastPromptLength + userText.Length;
                     implementation.CursorLeft = CursorPosition;
                 }
 
@@ -586,7 +669,7 @@ namespace Dotnet.Shell.Logic.Console
         private Task<bool> OnArrowAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
             return Task.Run(() => {
-
+                var userTextPosition = userText.GetLogicCursorPosition(currentLineIndex, CursorPosition, LastPromptLength);
                 if (key.Key == ConsoleKey.LeftArrow)
                 {
                     if (currentLineIndex == 0 && CursorPosition - 1 >= LastPromptLength || // single line
@@ -594,7 +677,7 @@ namespace Dotnet.Shell.Logic.Console
                     {
                         CursorPosition--;
                     }
-                    else if (currentLineIndex > 0)
+                    else if (currentLineIndex > 0 && !userText.IsForcedMultiline)
                     {
                         // we need to move up a line and we are at the edge
                         currentLineIndex--;
@@ -606,12 +689,12 @@ namespace Dotnet.Shell.Logic.Console
                 }
                 else
                 {
-                    if (UserEnteredTextPosition + 1 <= UserEnteredText.Length && implementation.CursorLeft + 1 <= implementation.WindowWidth -1)
+                    if (userTextPosition + 1 <= userText.Length && implementation.CursorLeft + 1 <= implementation.WindowWidth - 1)
                     {
                         // can advance in string and position would not go over the window edge
                         CursorPosition++;
                     }
-                    else if (UserEnteredTextPosition + 1 <= UserEnteredText.Length && implementation.CursorLeft + 1 > implementation.WindowWidth - 1)
+                    else if (userTextPosition + 1 <= userText.Length && implementation.CursorLeft + 1 > implementation.WindowWidth - 1 && !userText.IsForcedMultiline)
                     {
                         // would go over the edge of the window
                         CursorPosition = 0;
@@ -630,6 +713,19 @@ namespace Dotnet.Shell.Logic.Console
         {
             return Task.Run(() =>
             {
+                if (CurrentHistoryIndex < Shell.History.Count && CurrentHistoryIndex != -1)
+                {
+                    ClearUserEntry();
+                    CursorPosition = LastPromptLength;
+                    MoveCursorToStartOfPrompt();
+
+                    var newCmd = Shell.History[CurrentHistoryIndex].CmdLine;
+
+                    Write(newCmd, newCmd.Length + LastPromptLength > Width);
+                    userText = new ConsoleTextSpan();
+                    userText.Append(newCmd);
+                }
+
                 if (key.Key == ConsoleKey.UpArrow)
                 {
                     CurrentHistoryIndex--;
@@ -647,19 +743,6 @@ namespace Dotnet.Shell.Logic.Console
                     }
                 }
 
-                if (CurrentHistoryIndex < Shell.History.Count)
-                {
-                    ClearUserEntry();
-                    CursorPosition = LastPromptLength;
-                    implementation.CursorLeft = LastPromptLength;
-
-                    var newCmd = Shell.History[CurrentHistoryIndex].CmdLine;
-
-                    Write(newCmd, newCmd.Length + LastPromptLength > Width);
-                    UserEnteredText.Clear();
-                    UserEnteredText.Append(newCmd);
-                }
-
                 return false;
             });
         }
@@ -668,22 +751,15 @@ namespace Dotnet.Shell.Logic.Console
         {
             return Task.Run(() =>
             {
+                var userTextPosition = userText.GetLogicCursorPosition(currentLineIndex, CursorPosition, LastPromptLength);
                 // as in Bash escaping can only be performed at the end of the line
                 // ie you cant just jump to multiline in the middle of an existing command
-                if (UserEnteredText.Length != 0 && UserEnteredTextPosition == UserEnteredText.Length && UserEnteredText[^1] == '\\')
+                if (userText.Length != 0 && userTextPosition == userText.Length && userText[^1] == '\\')
                 {
-                    // remove the \ character
-                    //UserEnteredText.Remove(UserEnteredText.Length -1, 1);
-
-                    // pad out the line with \0
-
-                    // Can't use CursorLeft as its already on a newline - use lastRawPosition
-                    // we can use that value as we are being executed write after it is set
-                    var charsToAdd = Width - LastRawPosition -1;
-                    UserEnteredText = UserEnteredText.Append(new string('\0', charsToAdd));
-
                     // force a newline
-                    totalExtraLinesCreated++;
+                    userText.Append('\n');
+                    userText.IsForcedMultiline = true;
+
                     currentLineIndex++;
                     implementation.CursorLeft = 0;
                     CursorPosition = 0;
@@ -698,23 +774,24 @@ namespace Dotnet.Shell.Logic.Console
         {
             return Task.Run(async () =>
             {
-                if (UserEnteredTextPosition + 1 < UserEnteredText.Length)
+                var userTextPosition = userText.GetLogicCursorPosition(currentLineIndex, CursorPosition, LastPromptLength);
+                if (userTextPosition + 1 < userText.Length)
                 {
-                    var spaceIndex = UserEnteredText.ToString().IndexOf(' ', UserEnteredTextPosition + 1);
+                    var spaceIndex = userText.ToString().IndexOf(' ', userTextPosition + 1);
                     if (spaceIndex == -1)
                     {
                         _ = await OnEndAsync(prompt, key);
                     }
                     else
                     {
-                        var logicalCharsToAdvance = spaceIndex - UserEnteredTextPosition;
+                        var logicalCharsToAdvance = spaceIndex - userTextPosition;
                         for (int x = 0; x < logicalCharsToAdvance; x++)
                         {
                             _ = await OnArrowAsync(prompt, new ConsoleKeyEx(ConsoleKey.RightArrow));
                         }
 
                         // if we have jumped a line we might need an extra call
-                        if (UserEnteredText[UserEnteredTextPosition] != ' ')
+                        if (userText[userTextPosition] != ' ')
                         {
                             _ = await OnArrowAsync(prompt, new ConsoleKeyEx(ConsoleKey.RightArrow));
                         }
@@ -729,16 +806,17 @@ namespace Dotnet.Shell.Logic.Console
         {
             return Task.Run(async () =>
             {
-                if (UserEnteredTextPosition - 2 > 0)
+                var userTextPosition = userText.GetLogicCursorPosition(currentLineIndex, CursorPosition, LastPromptLength);
+                if (userTextPosition - 2 > 0)
                 {
-                    var spaceIndex = UserEnteredText.ToString().LastIndexOf(' ', UserEnteredTextPosition -2);
+                    var spaceIndex = userText.ToString().LastIndexOf(' ', userTextPosition - 2);
                     if (spaceIndex == -1)
                     {
                         _ = await OnHomeAsync(prompt, key);
                     }
                     else
                     {
-                        var logicalCharsToRetreat = UserEnteredTextPosition - spaceIndex - 1;
+                        var logicalCharsToRetreat = userTextPosition - spaceIndex - 1;
                         for (int x = 0; x < logicalCharsToRetreat; x++)
                         {
                             _ = await OnArrowAsync(prompt, new ConsoleKeyEx(ConsoleKey.LeftArrow));
@@ -753,20 +831,20 @@ namespace Dotnet.Shell.Logic.Console
         {
             return Task.Run(async () =>
             {
-                if (UserEnteredTextPosition - 2 > 0)
+                var userTextPosition = userText.GetLogicCursorPosition(currentLineIndex, CursorPosition, LastPromptLength);
+                if (userTextPosition - 2 > 0)
                 {
-                    var spaceIndex = UserEnteredText.ToString().LastIndexOf(' ', UserEnteredTextPosition - 2);
+                    var spaceIndex = userText.ToString().LastIndexOf(' ', userTextPosition - 2);
                     if (spaceIndex == -1)
                     {
-                        UserEnteredText.Clear();
+                        userText = new ConsoleTextSpan();
                         ClearUserEntry();
-                        implementation.CursorTop = lastPromptCursorTop;
-                        implementation.CursorLeft = LastPromptLength;
+                        MoveCursorToStartOfPrompt();
                         CursorPosition = LastPromptLength;
                     }
                     else
                     {
-                        var logicalCharsToRetreat = UserEnteredTextPosition - spaceIndex - 1;
+                        var logicalCharsToRetreat = userTextPosition - spaceIndex - 1;
                         for (int x = 0; x < logicalCharsToRetreat; x++)
                         {
                             _ = await OnBackSpaceAsync(prompt, key);
@@ -775,6 +853,28 @@ namespace Dotnet.Shell.Logic.Console
                 }
                 return true;
             });
+        }
+
+        private void MoveCursorToStartOfPrompt()
+        {
+            // ugh when you go multiline the saved position it lost
+            if (currentLineIndex != 0)
+            {
+                implementation.MoveCursorUp(currentLineIndex);
+                implementation.CursorLeft = LastPromptLength;
+                currentLineIndex = 0;
+                CursorPosition = LastPromptLength;
+                implementation.SaveCursorPosition();
+            }
+            else
+            {
+                implementation.RestoreCursorPosition(() =>
+                {
+                    implementation.CursorLeft = LastPromptLength;
+                    currentLineIndex = 0;
+                    CursorPosition = LastPromptLength;
+                });
+            }
         }
     }
 }

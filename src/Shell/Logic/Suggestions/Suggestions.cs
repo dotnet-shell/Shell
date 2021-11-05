@@ -133,7 +133,7 @@ namespace Dotnet.Shell.Logic.Suggestions
         {
             if (NeedsNewSuggestions(prompt))
             {
-                textWhichGeneratedSuggestions = prompt.UserEnteredText.ToString();
+                textWhichGeneratedSuggestions = prompt.UserEnteredText;
                 textPosWhichGeneratedSuggestions = prompt.UserEnteredTextPosition;
 
                 // invalidate state

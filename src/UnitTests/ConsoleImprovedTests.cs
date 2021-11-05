@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -86,6 +87,39 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public async Task ConsoleTextSpanWrapping()
+        {
+            const string str = "abcdefghijklmnopqrstuvwxyz";
+
+            ConsoleTextSpan cts = new ConsoleTextSpan();
+            cts.Append(str);
+            cts.Insert(0, '0', 4, 5);
+
+            const string expected = @"0
+abcde
+fghij
+klmno
+pqrst
+uvwxy
+z";
+            Assert.AreEqual(expected.Replace("\r", string.Empty), cts.ToString());
+
+
+            const string input = @"abcdefgh
+ijklmnopqrst
+12 ggg";
+
+            cts = new ConsoleTextSpan();
+            cts.Append(input.Replace("\r", string.Empty));
+            cts.Insert(3, 'x', 4, 12);
+
+            const string output = @"abcxdefg
+hijklmnopqrs
+t12 ggg";
+            Assert.AreEqual(output.Replace("\r", string.Empty), cts.ToString());
+        }
+
+        [TestMethod]
         public async Task CommandOverrideAsync()
         {
             using (var ms = new MemoryStream())
@@ -135,7 +169,10 @@ namespace UnitTests
                         lastPos++;
                         // This makes sure that after every character the position variable is correctly incremented by 1
                         Assert.AreEqual(console.UserEnteredText.Length, console.UserEnteredTextPosition);
-                        Assert.AreEqual(lastPos, console.UserEnteredTextPosition);
+
+                        // count \n
+                        var newlines = console.UserEnteredText.ToString().Where(x => x == '\n').Count();
+                        Assert.AreEqual(lastPos + newlines, console.UserEnteredTextPosition);
                     }
                     return Task<bool>.FromResult(false); 
                 });
@@ -165,7 +202,7 @@ namespace UnitTests
                 var input = "aaabbbcccdddeeefffggg";
 
                 var fakeShell = new Shell();
-                fakeShell.CommandHandlers.Add((cmd) => { Assert.AreEqual(input, cmd); return cmd; });
+                fakeShell.CommandHandlers.Add((cmd) => { Assert.AreEqual("y"+input+"x", cmd); return cmd; });
                 fakeShell.Prompt = () => { return new ColorString("# > ", "# > "); };
 
                 var mockConsole = new MockConsole()
@@ -173,21 +210,6 @@ namespace UnitTests
                     WindowWidth = 12,
                 };
                 var console = new ConsoleImproved(mockConsole, fakeShell);
-
-                int pos = 0;
-                console.AddKeyOverride(ConsoleKeyEx.Any, (console, key) =>
-                {
-                    if (key.Key == ConsoleKey.LeftArrow)
-                    {
-                        pos--;
-                    }
-                    else if (key.Key == ConsoleKey.RightArrow || key.Key != ConsoleKey.Enter)
-                    {
-                        pos++;
-                    }
-                    Assert.AreEqual(pos, console.UserEnteredTextPosition);
-                    return Task<bool>.FromResult(false);
-                });
 
                 console.DisplayPrompt();
 
@@ -203,16 +225,17 @@ namespace UnitTests
                 {
                     mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.LeftArrow));
                 }
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.Y));
 
                 for (int x = 0; x < input.Length; x++)
                 {
                     mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.RightArrow));
                 }
 
+                mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.X));
                 mockConsole.keys.Enqueue(new ConsoleKeyEx(ConsoleKey.Enter));
 
-                var command = await console.GetCommandAsync(CancellationToken.None);
-
+                _ = await console.GetCommandAsync(CancellationToken.None);
             }
         }
 
@@ -230,23 +253,6 @@ namespace UnitTests
                     WindowWidth = 12,
                 };
                 var console = new ConsoleImproved(mockConsole, fakeShell);
-
-                int lastPos = 0;
-                console.AddKeyOverride(ConsoleKeyEx.Any, (console, key) =>
-                {
-                    if (key.Key == ConsoleKey.Backspace)
-                    {
-                        // This makes sure that after every character the position variable is correctly incremented by 1
-                        lastPos--;
-                        Assert.AreEqual(console.UserEnteredText.Length, console.UserEnteredTextPosition);
-                        Assert.AreEqual(lastPos, console.UserEnteredTextPosition);
-                    }
-                    else if (key.Key != ConsoleKey.Enter)
-                    {
-                        lastPos++;
-                    }
-                    return Task<bool>.FromResult(false);
-                });
 
                 console.DisplayPrompt();
 
@@ -428,12 +434,35 @@ namespace UnitTests
         public StringBuilder Output = new();
         public Queue<ConsoleKeyEx> keys = new();
 
+        private int savedCursorLeft = 0;
+        private int savedCursorTop = 0;
         private int cursorLeft = 0;
         private int cursorTop = 0;
 
-        public int CursorLeft { get { return cursorLeft; } set { Assert.IsTrue(value >= 0); cursorLeft = value; } }
+        public int CursorLeft { 
+            get { return cursorLeft; } 
+            set { Assert.IsTrue(value >= 0); cursorLeft = value; } }
 
-        public int CursorTop { get { return cursorTop; } set { Assert.IsTrue(value >= 0); cursorTop = value; } }
+        public int CursorTop { 
+            get { return cursorTop + 1; } 
+            set {
+                value -= 1;
+
+                Assert.IsTrue(value >= 0);
+                var output = Output.ToString();
+
+                var lines = Output.ToString().Split('\n').Count();
+
+                if (value >= lines)
+                {
+
+                }
+
+                Assert.IsTrue(value < lines);
+
+                cursorTop = value; 
+            } 
+        }
 
         public bool CursorVisible { set; get; } = true;
 
@@ -445,6 +474,35 @@ namespace UnitTests
         public ConsoleColor BackgroundColor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public bool KeyAvailiable => keys.Count != 0;
+
+        public void ClearCurrentLine(int pos = -1)
+        {
+            var lines = Output.ToString().Split('\n');
+
+            if (pos == -1)
+            {
+                lines[cursorTop] = string.Empty;
+            }
+            else
+            {
+                if (pos < lines[cursorTop].Length)
+                {
+                    lines[cursorTop] = lines[cursorTop].Remove(pos);
+                }               
+            }
+
+            Output = new StringBuilder(string.Join('\n', lines));
+        }
+
+        public void MoveCursorDown(int lines)
+        {
+            CursorTop += lines;
+        }
+
+        public void MoveCursorUp(int lines)
+        {
+            CursorTop -= lines;
+        }
 
         public ConsoleKeyInfo ReadKey()
         {
@@ -493,6 +551,19 @@ namespace UnitTests
             throw new NotImplementedException();
         }
 
+        public void RestoreCursorPosition(Action onRestore = null)
+        {
+            cursorTop = savedCursorTop;
+            cursorLeft = savedCursorLeft;
+            onRestore?.Invoke();
+        }
+
+        public void SaveCursorPosition()
+        {
+            savedCursorTop = cursorTop;
+            savedCursorLeft = cursorLeft;
+        }
+
         public Task SaveAsync()
         {
             throw new NotImplementedException();
@@ -507,8 +578,8 @@ namespace UnitTests
         public void WriteLine(string message = null)
         {
             CursorLeft += message == null ? 0 : message.Length;
+            Output.Append(message + "\n");
             CursorTop++;
-            Output.Append(message+"\n");
         }
     }
 }

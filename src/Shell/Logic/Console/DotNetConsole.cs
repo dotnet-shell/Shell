@@ -1,6 +1,8 @@
 ﻿using Dotnet.Shell.Logic.Execution;
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Dotnet.Shell.Logic.Console
@@ -18,6 +20,8 @@ namespace Dotnet.Shell.Logic.Console
         int IConsole.WindowHeight { get => System.Console.WindowHeight; }
 
         public bool KeyAvailiable { get => System.Console.KeyAvailable; }
+
+        private Point savedCursorPos;
 
         public ConsoleKeyInfo ReadKey()
         {
@@ -54,6 +58,42 @@ namespace Dotnet.Shell.Logic.Console
                 System.Console.Clear();
                 return Task.CompletedTask;
             }
+        }
+
+        public void ClearCurrentLine(int pos = -1)
+        {
+            if (pos == -1) // clear entire line, don't change position
+            {
+                // If n is 2, clear entire line. Cursor position does not change.
+                System.Console.Write("\u001B[2K");
+            }
+            else // clear from position which will be set
+            {
+                //If n is 0 (or missing), clear from cursor to the end of the line.
+                System.Console.Write("\u001B[0K");
+            }
+        }
+
+        public void SaveCursorPosition()
+        {
+            savedCursorPos = new Point(System.Console.CursorLeft, System.Console.CursorTop);
+        }
+
+        public void RestoreCursorPosition(Action onRestore = null)
+        {
+            System.Console.CursorLeft = savedCursorPos.X;
+            System.Console.CursorTop = savedCursorPos.Y;
+            onRestore?.Invoke();
+        }
+
+        public void MoveCursorDown(int lines)
+        {
+            System.Console.Write("\u001B[" + lines + "B");
+        }
+
+        public void MoveCursorUp(int lines)
+        {
+            System.Console.Write("\u001B[" + lines + "A");
         }
     }
 }

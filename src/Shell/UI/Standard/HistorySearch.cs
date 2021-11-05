@@ -35,6 +35,8 @@ namespace Dotnet.Shell.UI.Standard
 
         private async Task<bool> OnSearchHistoryAsync(ConsoleImproved prompt, ConsoleKeyEx key)
         {
+            prompt.ClearUserEntry();
+
             int oldPos = implementation.CursorTop;
 
             implementation.CursorLeft = 0;
@@ -63,6 +65,7 @@ namespace Dotnet.Shell.UI.Standard
             ci.AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Enter), OnSelectSearchEntryAsync);
 
             ci.DisplayPrompt();
+            ci.ClearUserEntry();
 
             // When the prompt returns, instead of executing the command we just set that
             // as what to show on screen
@@ -76,7 +79,7 @@ namespace Dotnet.Shell.UI.Standard
             implementation.CursorTop = oldPos;
             implementation.Write(new string(' ', implementation.WindowWidth));
 
-            prompt.DisplayPrompt(command);
+            prompt.DisplayPrompt(command, false);
 
             return false;
         }
@@ -230,8 +233,7 @@ namespace Dotnet.Shell.UI.Standard
                 {
                     if (search.SearchResults.Any())
                     {
-                        ci.UserEnteredText.Clear();
-                        ci.UserEnteredText.Append(search.SearchResults[search.SelectedItem]);
+                        ci.UserEnteredText = search.SearchResults[search.SelectedItem];
                     }
                 }
 
