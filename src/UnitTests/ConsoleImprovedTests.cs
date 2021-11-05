@@ -87,7 +87,7 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public async Task ConsoleTextSpanWrapping()
+        public void ConsoleTextSpanWrapping()
         {
             const string str = "abcdefghijklmnopqrstuvwxyz";
 
