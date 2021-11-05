@@ -98,7 +98,7 @@ namespace Dotnet.Shell.API
         /// <summary>
         /// The shell history
         /// </summary>
-        public List<HistoryItem> History { get; } = new List<HistoryItem>();
+        public virtual List<HistoryItem> History { get; } = new List<HistoryItem>();
 
         /// <summary>
         /// Gets the home directory.
