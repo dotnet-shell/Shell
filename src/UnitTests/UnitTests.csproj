@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shell\Shell.csproj" />
+    <ProjectReference Include="..\Shell\dotnet-shell-lib.csproj" />
   </ItemGroup>
 
   <ItemGroup>

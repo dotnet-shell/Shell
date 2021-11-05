@@ -1,39 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Dotnet.Shell</RootNamespace>
-    <AssemblyName>dotnet-shell</AssemblyName>
-    <PackageId>dotnet-shell</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageProjectUrl>https://github.com/dotnet-shell</PackageProjectUrl>
-    <PackageLicenseExpression></PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/dotnet-shell</RepositoryUrl>
-    <Description>dotnet-shell is an interactive BASH-like shell based on CSharp script (CSX)</Description>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackAsTool>true</PackAsTool>
-    <ToolCommandName>dotnet-shell</ToolCommandName>
-    <Authors>dotnet-shell</Authors>
-    <Product>dotnet-shell</Product>
     <Version>1.0.0.10</Version>
-    <AssemblyVersion>1.0.0.10</AssemblyVersion>
+    <Description>dotnet-shell-lib is a library to build interactive BASH-like shell based on CSharp script (CSX).
+If you are looking for a usable binary check out dotnet-shell</Description>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/dotnet-shell</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/dotnet-shell</RepositoryUrl>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="..\..\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
@@ -48,12 +24,14 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.9.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="16.9.60" />
-    <PackageReference Include="Mono.Posix.NETStandard" Version="1.0.0" />
     <PackageReference Include="System.CodeDom" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FirstRunWizard\FirstRunWizard.csproj" />
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

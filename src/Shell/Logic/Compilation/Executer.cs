@@ -103,7 +103,7 @@ namespace Dotnet.Shell.Logic.Compilation
         private async Task CreateDefaultShellAsync()
         {
             var script = @"
-#r ""dotnet-shell.dll""
+#r ""dotnet-shell-lib.dll""
 using Dotnet.Shell;
 using Dotnet.Shell.UI;
 using Dotnet.Shell.API;
