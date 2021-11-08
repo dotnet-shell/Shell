@@ -77,7 +77,7 @@ namespace Dotnet.Shell.API
         /// <value>
         /// The command handler.
         /// </value>
-        public List<Func<string, string>> CommandHandlers { get; } = new List<Func<string, string>>();
+        public virtual List<Func<string, string>> CommandHandlers { get; } = new List<Func<string, string>>();
 
         /// <summary>
         /// A list of autocompletion handlers which can be used by the user to extend autocompletion results
@@ -85,7 +85,7 @@ namespace Dotnet.Shell.API
         /// <value>
         /// The autocompletion handlers.
         /// </value>
-        public List<Func<string, int, Task<IEnumerable<Suggestion>>>> AutoCompletionHandlers { get; } = new List<Func<string, int, Task<IEnumerable<Suggestion>>>>();
+        public virtual List<Func<string, int, Task<IEnumerable<Suggestion>>>> AutoCompletionHandlers { get; } = new List<Func<string, int, Task<IEnumerable<Suggestion>>>>();
 
         /// <summary>
         /// Gets the executing program location.
@@ -106,7 +106,7 @@ namespace Dotnet.Shell.API
         /// <value>
         /// The home directory.
         /// </value>
-        public string HomeDirectory { get; internal set; } = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        public virtual string HomeDirectory { get; internal set; } = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
         /// <summary>
         /// This function can be called to render a pretty error message.

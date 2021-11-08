@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.0.10</Version>
-    <Description>dotnet-shell-lib is a library to build interactive BASH-like shell based on CSharp script (CSX).
-If you are looking for a usable binary check out dotnet-shell</Description>
+    <Version>1.0.0.11</Version>
+    <Description>dotnet-shell-lib is a library to build interactive shell environments like BASH. This library contains implementations to read and display multiline prompts as well as optionally invoking dotnet-shell syntax on these strings read from these.
+If you are looking for the dotnet-shell  binary which implments all of the above check out dotnet-shell tool.</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/dotnet-shell</PackageProjectUrl>
     <RepositoryUrl>https://github.com/dotnet-shell</RepositoryUrl>

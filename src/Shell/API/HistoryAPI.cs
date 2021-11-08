@@ -8,6 +8,12 @@ namespace Dotnet.Shell.API
 {
     public class HistoryAPI
     {
+        /// <summary>
+        /// Searches the user history for a specific term.
+        /// </summary>
+        /// <param name="term">The term.</param>
+        /// <param name="port">The port the history server is listening on.</param>
+        /// <param name="token">The authentication token.</param>
         public static async Task SearchResultAsync(string term, int port, string token)
         {
             using (var client = new TcpClient(IPAddress.Loopback.ToString(), port))
@@ -18,6 +24,12 @@ namespace Dotnet.Shell.API
             }
         }
 
+        /// <summary>
+        /// Listens for search requests asynchronous.
+        /// </summary>
+        /// <param name="onStartedListening">Called when listening has started.</param>
+        /// <returns>Task</returns>
+        /// <exception cref="System.IO.InvalidDataException">Invalid token</exception>
         public static async Task<string> ListenForSearchResultAsync(Action<int, string> onStartedListening)
         {
             var result = string.Empty;

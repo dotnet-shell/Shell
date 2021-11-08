@@ -14,6 +14,11 @@ using Microsoft.CodeAnalysis.Scripting;
 
 namespace Dotnet.Shell.Logic.Compilation
 {
+    /// <summary>
+    /// The Executer is responsible for actually performing the execution of the commands
+    /// the user has typed it. It is closely coupled with the preprocessor which turns the
+    /// user supplied text into C#
+    /// </summary>
     public class Executer
     {
         private readonly ErrorDisplay errorHelper;
@@ -21,10 +26,27 @@ namespace Dotnet.Shell.Logic.Compilation
         private readonly SourceProcessor nshProcessor = new();
         private readonly InteractiveRunner runner;
 
+        /// <summary>
+        /// Gets the shell.
+        /// </summary>
+        /// <value>
+        /// The shell.
+        /// </value>
         public Dotnet.Shell.API.Shell Shell => this.runner.ScriptVariables["Shell"] as Dotnet.Shell.API.Shell;
 
+        /// <summary>
+        /// Gets the internal arguments the user/script has created
+        /// </summary>
+        /// <value>
+        /// The arguments.
+        /// </value>
         public List<string> Args => this.runner.ScriptVariables["Args"] as List<string>;
 
+        /// <summary>
+        /// Gets the default execution environment asynchronously.
+        /// </summary>
+        /// <param name="errorHelper">The error helper.</param>
+        /// <returns></returns>
         public static async Task<Executer> GetDefaultExecuterAsync(ErrorDisplay errorHelper)
         {
             var executer = new Executer(errorHelper);
@@ -88,6 +110,12 @@ namespace Dotnet.Shell.Logic.Compilation
             this.runner = new InteractiveRunner(errorHelper);
         }
 
+        /// <summary>
+        /// Loads an assembly from file asynchronous.
+        /// </summary>
+        /// <param name="dll">The DLL.</param>
+        /// <returns>Task</returns>
+        /// <exception cref="System.IO.FileNotFoundException"></exception>
         public Task LoadAssemblyFromFileAsync(string dll)
         {
             if (!File.Exists(dll))
@@ -126,6 +154,12 @@ var Args = new List<string>();
             await this.runner.ExecuteAsync(script, Environment.CurrentDirectory);
         }
 
+        /// <summary>
+        /// Executes a command asynchronous.
+        /// </summary>
+        /// <param name="line">The line.</param>
+        /// <param name="depth">The current recursive depth.</param>
+        /// <param name="preprocess">if set to <c>true</c> [preprocess].</param>
         public async Task ExecuteAsync(string line, int depth = 0, bool preprocess = true)
         {
             try
@@ -187,6 +221,10 @@ var Args = new List<string>();
             }
         }
 
+        /// <summary>
+        /// Executes a script asynchronous.
+        /// </summary>
+        /// <param name="file">The file.</param>
         public async Task ExecuteFileAsync(string file)
         {
             try

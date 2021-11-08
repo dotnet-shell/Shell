@@ -7,11 +7,19 @@ using Microsoft.Extensions.Options;
 
 namespace Dotnet.Shell.UI
 {
+    /// <summary>
+    /// This class handles displaying of errors to the screen
+    /// </summary>
+    /// <seealso cref="Microsoft.Extensions.Options.IOptionsMonitor&lt;Microsoft.Extensions.Logging.Console.ConsoleLoggerOptions&gt;" />
     public class ErrorDisplay : IOptionsMonitor<ConsoleLoggerOptions>
     {
         private readonly IConsole console;
         private readonly ConsoleLoggerOptions _consoleLoggerOptions;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ErrorDisplay"/> class.
+        /// </summary>
+        /// <param name="console">The console.</param>
         public ErrorDisplay(IConsole console)
         {
             this.console = console;
@@ -22,6 +30,12 @@ namespace Dotnet.Shell.UI
             };
         }
 
+        /// <summary>
+        /// Pretty prints the exception.
+        /// </summary>
+        /// <param name="ex">The ex.</param>
+        /// <param name="input">The input.</param>
+        /// <param name="originalInput">The original input.</param>
         public void PrettyException(Exception ex, string input = default, string originalInput = default)
         {
             try
@@ -72,11 +86,19 @@ namespace Dotnet.Shell.UI
             }
         }
 
+        /// <summary>
+        /// Prints the color string as an error
+        /// </summary>
+        /// <param name="msg">The MSG.</param>
         public void PrettyError(ColorString msg)
         {
             console.WriteLine(msg.TextWithFormattingCharacters);
         }
 
+        /// <summary>
+        /// Prints the string as an error
+        /// </summary>
+        /// <param name="msg">The MSG.</param>
         public void PrettyError(string msg)
         {
             console.WriteLine(new ColorString(msg, System.Drawing.Color.Red).TextWithFormattingCharacters);
@@ -105,15 +127,34 @@ namespace Dotnet.Shell.UI
             }
         }
 
+        /// <summary>
+        /// Returns the current <typeparamref name="TOptions" /> instance with the <see cref="F:Microsoft.Extensions.Options.Options.DefaultName" />.
+        /// </summary>
         public ConsoleLoggerOptions CurrentValue => _consoleLoggerOptions;
 
+        /// <summary>
+        /// Returns a configured <typeparamref name="TOptions" /> instance with the given name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public ConsoleLoggerOptions Get(string name) => _consoleLoggerOptions;
 
+        /// <summary>
+        /// Registers a listener to be called whenever a named <typeparamref name="TOptions" /> changes.
+        /// </summary>
+        /// <param name="listener">The action to be invoked when <typeparamref name="TOptions" /> has changed.</param>
+        /// <returns>
+        /// An <see cref="T:System.IDisposable" /> which should be disposed to stop listening for changes.
+        /// </returns>
         public IDisposable OnChange(Action<ConsoleLoggerOptions, string> listener)
         {
             return null;
         }
 
+        /// <summary>
+        /// Prints the string at information level
+        /// </summary>
+        /// <param name="line">The line.</param>
         public static void PrettyInfo(string line)
         {
             Console.WriteLine(line);
