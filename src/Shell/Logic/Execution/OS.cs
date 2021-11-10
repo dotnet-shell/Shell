@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
+using System.Text;
 
 namespace Dotnet.Shell.Logic.Execution
 {
@@ -48,6 +49,11 @@ namespace Dotnet.Shell.Logic.Execution
             Dotnet.Shell.API.Shell shell = shellObj as Dotnet.Shell.API.Shell;
             Redirection redirection = redirectionObj == null ? Redirection.None : (Redirection)redirectionObj;
 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Settings.Default.SubShellArgumentsFormat.Contains("-Encoded"))
+            {
+                cmdline = Convert.ToBase64String(Encoding.Unicode.GetBytes(cmdline));
+            }
+
             var proc = new Process();
             proc.StartInfo.RedirectStandardError = redirection.HasFlag(Redirection.Err);
             proc.StartInfo.RedirectStandardOutput = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || redirection.HasFlag(Redirection.Out);
@@ -78,11 +84,20 @@ namespace Dotnet.Shell.Logic.Execution
             proc.Start();
             var procEx = new ProcessEx(proc);
 
-            // Windows handler stdout redirection differently, to work around this we just copy to the console
-            // TODO fix this so we can perform redirection etc
+            // Windows handles stdout redirection differently, to work around this we copy to console if
+            // we have no redirection otherwise we copy to an internal stream
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                _ = proc.StandardOutput.BaseStream.CopyToAsync(System.Console.OpenStandardOutput());
+                if (redirection.HasFlag(Redirection.Out))
+                {
+                    // use internal stream
+                    _ = proc.StandardOutput.BaseStream.CopyToAsync(procEx.WindowsStdOut);
+                }
+                else
+                {
+                    // copy straight to the console
+                    _ = proc.StandardOutput.BaseStream.CopyToAsync(System.Console.OpenStandardOutput());
+                }
             }
 
             return procEx;

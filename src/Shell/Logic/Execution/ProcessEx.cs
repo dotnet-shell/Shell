@@ -47,9 +47,15 @@ namespace Dotnet.Shell.Logic.Execution
         private bool suspended = false;
 
         public Process Process => p;
+        internal Stream WindowsStdOut { get; private set; } = null;
 
         public ProcessEx(Process p)
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                WindowsStdOut = new MemoryStream();
+            }
+
             this.p = p;
         }
 
@@ -165,7 +171,13 @@ namespace Dotnet.Shell.Logic.Execution
         public T ConvertStdOutToVariable<T>()
         {
             p.WaitForExit();
-            return ConvertStreamToVariable<T>(p.StandardOutput.BaseStream);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                WindowsStdOut.Position = 0;
+            }
+
+            return ConvertStreamToVariable<T>(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WindowsStdOut : p.StandardOutput.BaseStream);
         }
 
         /// <summary>
@@ -177,7 +189,7 @@ namespace Dotnet.Shell.Logic.Execution
         public T ConvertStdErrToVariable<T>()
         {
             p.WaitForExit();
-            return ConvertStreamToVariable<T>(p.StandardOutput.BaseStream);
+            return ConvertStreamToVariable<T>(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WindowsStdOut : p.StandardOutput.BaseStream);
         }
 
         /// <summary>
@@ -273,6 +285,11 @@ namespace Dotnet.Shell.Logic.Execution
 
                     suspendProcessTokenSource.Cancel();
                     suspendProcessTokenSource.Dispose();
+
+                    if (WindowsStdOut != null)
+                    {
+                        WindowsStdOut.Dispose();
+                    }
                 }
 
                 disposedValue = true;

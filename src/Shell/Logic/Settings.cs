@@ -139,7 +139,7 @@ namespace Dotnet.Shell.Logic
         /// The sub shell arguments format.
         /// </value>
         [Option('a', "subShellArgs", Required = false, HelpText = "Arguments to the provided to the SubShell, this MUST include the format specifier {0}")]
-        public string SubShellArgumentsFormat { get; set; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "-NoProfile -ExecutionPolicy unrestricted -Command {0}" : "-c \"{0}\"";
+        public string SubShellArgumentsFormat { get; set; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "-NoProfile -ExecutionPolicy unrestricted -Encoded {0}" : "-c \"{0}\"";
 
         /// <summary>
         /// Gets the additional usings.
