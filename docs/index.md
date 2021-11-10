@@ -33,19 +33,21 @@ Since the dotnet runtime enabled REPL (Read Evaluate Print Loop) support there h
 
 ### How to install
 
-First you need to [install the .NET5. runtime.](https://docs.microsoft.com/en-gb/dotnet/core/install/linux) this is usually easiest via your OS' package manager. Next run:
+First you need to [install the .NET6. runtime.](https://dotnet.microsoft.com/download/dotnet/6.0) this is usually easiest via your OS' package manager. Next run:
 
 	dotnet --info
-If you see a lot of .NET version information that starts with 5.0 then you have a working copy of the .NET runtime. dotnet-shell is a dotnet tool. It is installed by:
+If you see a lot of .NET version information that starts with 6.0 then you have a working copy of the .NET runtime. dotnet-shell is a dotnet tool. It is installed by:
 
 	dotnet tool install -g dotnet-shell
 
 | OS      | Status       |
 |---------|--------------|
 | Linux   | Stable       |
-| Windows | Experimental |
+| Windows | In-Testing   |
 | Mac     | Should work *untested* |
-| BSD     | Unsupported  |
+| BSD     | [Unsupported](https://github.com/dotnet/runtime/issues/14537)  |
+
+There is now initial support for Windows execution via PowerShell. Executing commands works as does variable capture.
 
 ## Syntax cheatsheet
 
@@ -145,7 +147,7 @@ Escaping input automatically - the following one liner will print escaped C#. Gr
 Visual Studio solutions and VS Code projects are published with this repo. Otherwise you can checkout the repo and run:
 
     dotnet build
-    dotnet src/Shell/bin/Debug/net5.0/dotnet-shell.dll
+    dotnet src/Shell/bin/Debug/net6.0/dotnet-shell.dll
 
 ## Author
 **i-am-shodan**
