@@ -864,19 +864,6 @@ namespace Dotnet.Shell.Logic.Console
         {
             return Task.Run(() =>
             {
-                if (currentHistoryIndex < Shell.History.Count && currentHistoryIndex != -1)
-                {
-                    ClearUserEntry();
-                    CursorPosition = lastPromptLength;
-                    MoveCursorToStartOfPrompt();
-
-                    var newCmd = Shell.History[currentHistoryIndex].CmdLine;
-
-                    Write(newCmd, newCmd.Length + lastPromptLength > Width);
-                    userText = new ConsoleTextSpan();
-                    userText.Append(newCmd);
-                }
-
                 if (key.Key == ConsoleKey.UpArrow)
                 {
                     currentHistoryIndex--;
@@ -892,6 +879,19 @@ namespace Dotnet.Shell.Logic.Console
                     {
                         currentHistoryIndex = Shell.History.Count - 1;
                     }
+                }
+
+                if (currentHistoryIndex < Shell.History.Count && currentHistoryIndex != -1)
+                {
+                    ClearUserEntry();
+                    CursorPosition = lastPromptLength;
+                    MoveCursorToStartOfPrompt();
+
+                    var newCmd = Shell.History[currentHistoryIndex].CmdLine;
+
+                    Write(newCmd, newCmd.Length + lastPromptLength > Width);
+                    userText = new ConsoleTextSpan();
+                    userText.Append(newCmd);
                 }
 
                 return false;
