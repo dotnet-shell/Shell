@@ -16,8 +16,8 @@
     <ToolCommandName>dotnet-shell</ToolCommandName>
     <Authors>dotnet-shell</Authors>
     <Product>dotnet-shell</Product>
-    <Version>1.0.1.1</Version>
-    <AssemblyVersion>1.0.1.1</AssemblyVersion>
+    <Version>1.0.1.2</Version>
+    <AssemblyVersion>1.0.1.2</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -40,8 +40,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="ConsoleGUI" Version="1.4.0" />
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    <PackageReference Include="ConsoleGUI" Version="1.4.1" />
     <PackageReference Include="Mono.Posix.NETStandard" Version="1.0.0" />
   </ItemGroup>
 
