@@ -70,7 +70,7 @@ namespace Dotnet.Shell.API
             }
 
             listener.Stop();
-            return result;
+            return result.Trim();
         }
     }
 }

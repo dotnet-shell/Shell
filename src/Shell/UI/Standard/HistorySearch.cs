@@ -79,6 +79,7 @@ namespace Dotnet.Shell.UI.Standard
             implementation.CursorTop = oldPos;
             implementation.Write(new string(' ', implementation.WindowWidth));
 
+            prompt.ClearUserEntry();
             prompt.DisplayPrompt(command, false);
 
             return false;

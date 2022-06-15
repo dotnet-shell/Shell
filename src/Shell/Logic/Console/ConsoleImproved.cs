@@ -658,8 +658,8 @@ namespace Dotnet.Shell.Logic.Console
         public void DisplayPrompt(string text, bool forcePromptOntoNewLine)
         {
             DisplayPrompt(forcePromptOntoNewLine);
-            userText.Append(text);
 
+            userText.Append(text);
             Write(text, false);
         }
 
@@ -697,7 +697,7 @@ namespace Dotnet.Shell.Logic.Console
         {
             if (lastKeyRead.KeyChar == '\t')
             {
-                implementation.CursorLeft = lastRawPosition;
+                implementation.CursorLeft = lastRawPosition -1;
             }
         }
 

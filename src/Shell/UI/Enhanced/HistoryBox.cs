@@ -18,6 +18,7 @@ namespace Dotnet.Shell.UI.Enhanced
     {
         private bool quit = false;
         private bool updateSearch = false;
+        private bool clearOutput = false;
         private readonly IConsole console = null;
         private TextBox searchBox = null;
         private ListView listView = null;
@@ -41,7 +42,15 @@ namespace Dotnet.Shell.UI.Enhanced
 
             await console.RestoreAsync();
 
-            prompt.DisplayPrompt(command, false);
+            if (!string.IsNullOrWhiteSpace(command))
+            {
+                prompt.DisplayPrompt(command, false);
+            }
+            else
+            {
+                prompt.ClearUserEntry();
+                prompt.DisplayPrompt(prompt.UserEnteredText, false);
+            }
 
             return false;
         }
@@ -65,7 +74,15 @@ namespace Dotnet.Shell.UI.Enhanced
 
             if (result.IsCompletedSuccessfully)
             {
-                prompt.DisplayPrompt(await result, false);
+                if (!string.IsNullOrWhiteSpace(await result))
+                {
+                    prompt.DisplayPrompt(await result, false);
+                }
+                else
+                {
+                    prompt.ClearUserEntry();
+                    prompt.DisplayPrompt(prompt.UserEnteredText, false);
+                }
             }
             else
             {
@@ -159,11 +176,16 @@ namespace Dotnet.Shell.UI.Enhanced
                 await Task.Delay(50);
             }
 
-            return listView.SelectedItem;
+            return clearOutput ? string.Empty: listView.SelectedItem;
         }
 
         public void OnInput(InputEvent inputEvent)
         {
+            if (inputEvent.Key.Key == ConsoleKey.Escape)
+            {
+                clearOutput = true;
+                quit = true;
+            }
             if (inputEvent.Key.Key == ConsoleKey.Enter)
             {
                 quit = true;
