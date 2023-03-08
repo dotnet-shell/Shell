@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>1.0.1.1</Version>
     <Description>dotnet-shell-lib is a library to build interactive shell environments like BASH. This library contains implementations to read and display multiline prompts as well as optionally invoking dotnet-shell syntax on these strings read from these.
