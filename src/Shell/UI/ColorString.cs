@@ -45,14 +45,14 @@ namespace Dotnet.Shell.UI
         /// <param name="ansi">The ANSI.</param>
         internal ColorString(string s, string ansi = null)
         {
-            this.Text = s;
+            Text = s;
             if (ansi != null)
             {
-                this.TextWithFormattingCharacters = ansi;
+                TextWithFormattingCharacters = ansi;
             }
             else
             {
-                this.TextWithFormattingCharacters = s;
+                TextWithFormattingCharacters = s;
             }
         }
 

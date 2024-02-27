@@ -29,7 +29,7 @@ namespace Dotnet.Shell.UI.Standard
 
         public HistorySearch(IConsole console, Dotnet.Shell.API.Shell shell)
         {
-            this.implementation = console;
+            implementation = console;
             this.shell = shell;
         }
 

@@ -16,7 +16,7 @@ namespace UnitTests
         public async Task ConstructAsync()
         {
             var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            _ = await Executer.GetDefaultExecuterAsync(errorDisplay);
+            _ = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
         }
 
         [TestMethod]
@@ -24,7 +24,7 @@ namespace UnitTests
         public async Task LoadAssemblyFromFile_DLL_InvalidAsync()
         {
             var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            var exe = await Executer.GetDefaultExecuterAsync(errorDisplay);
+            var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
             await exe.LoadAssemblyFromFileAsync("");
             await exe.ExecuteAsync(string.Empty);
         }
@@ -36,7 +36,7 @@ namespace UnitTests
             try
             {
                 var errorDisplay = new ErrorDisplay(new AssertingConsole());
-                var exe = await Executer.GetDefaultExecuterAsync(errorDisplay);
+                var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
                 await exe.LoadAssemblyFromFileAsync(emptyFile);
                 await exe.ExecuteAsync(string.Empty);
                 Assert.Fail();
@@ -54,7 +54,7 @@ namespace UnitTests
         public async Task LoadAssemblyFromFile_DLLAsync()
         {
             var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            var exe = await Executer.GetDefaultExecuterAsync(errorDisplay);
+            var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
             await exe.LoadAssemblyFromFileAsync(Assembly.GetExecutingAssembly().Location);
         }
 
@@ -62,7 +62,7 @@ namespace UnitTests
         public async Task Load_nshAsync()
         {
             var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            var exe = await Executer.GetDefaultExecuterAsync(errorDisplay);
+            var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
             await exe.ExecuteFileAsync(@".\TestFiles\nshScriptTest.nsh".Replace('\\', Path.DirectorySeparatorChar));
         }
 
@@ -70,7 +70,7 @@ namespace UnitTests
         public async Task Load_CSAsync()
         {
             var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            var exe = await Executer.GetDefaultExecuterAsync(errorDisplay);
+            var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
             await exe.ExecuteFileAsync(@".\TestFiles\csScriptTest.cs".Replace('\\', Path.DirectorySeparatorChar));
         }
 
@@ -78,7 +78,7 @@ namespace UnitTests
         public async Task AccessShellAPIAsync()
         {
             var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            var exe = await Executer.GetDefaultExecuterAsync(errorDisplay);
+            var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
             await exe.ExecuteAsync("Console.WriteLine( Shell.WorkingDirectory );");
         }
 
@@ -86,7 +86,7 @@ namespace UnitTests
         public async Task AccessColorStringAsync()
         {
             var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            var exe = await Executer.GetDefaultExecuterAsync(errorDisplay);
+            var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
             await exe.ExecuteAsync("using System.Drawing; Console.WriteLine( new ColorString(\"Hello\", Color.Red) );");
         }
     }

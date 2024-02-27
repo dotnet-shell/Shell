@@ -85,9 +85,7 @@ namespace Dotnet.Shell.Logic.Compilation
                         if (currentBlockCommands.Any() || completedBlocksCommands.Any())
                         {
                             // if we are processing any block command or have emitted results from a block command then don't process anything
-#pragma warning disable VSTHRD101 // Avoid unsupported async delegates (If this fails something terrible has happened anyway)
                             completedBlocksCommands.ForEach(async x => await sw.WriteLineAsync(x.GetMetaRepresentation(currentBlockCommands[x])));
-#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
                             completedBlocksCommands.ForEach(x => currentBlockCommands.Remove(x));
                         }
                         else if (newBlocks.Any())

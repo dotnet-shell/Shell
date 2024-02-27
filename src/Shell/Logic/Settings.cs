@@ -8,28 +8,9 @@ using System.Runtime.InteropServices;
 namespace Dotnet.Shell.Logic
 {
     /// <summary>
-    /// The User Experience to use when console rendering
-    /// </summary>
-    public enum UserExperience
-    {
-        /// <summary>
-        /// The classic mode - similar to Bash
-        /// </summary>
-        Classic,
-        /// <summary>
-        /// Enhanced mode with improved history
-        /// </summary>
-        Enhanced,
-        /// <summary>
-        /// The TMux enhanced version which uses Tmux popup functionality
-        /// </summary>
-        TmuxEnhanced
-    }
-
-    /// <summary>
     /// This defined all the global settings these can either be set on the command line or via a script
     /// </summary>
-    public class Settings
+    public sealed class Settings
     {
         /// <summary>
         /// The default settings used by dotnet-shell
@@ -42,11 +23,11 @@ namespace Dotnet.Shell.Logic
             {
                 if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    this.AdditionalHistoryFiles = new List<string>() { Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".bash_history") };
-            }
+                    AdditionalHistoryFiles = new List<string>() { Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".bash_history") };
+                }
                 else
                 {
-                    this.AdditionalHistoryFiles = new List<string>() { Environment.ExpandEnvironmentVariables(@"%userprofile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt") };
+                    AdditionalHistoryFiles = new List<string>() { Environment.ExpandEnvironmentVariables(@"%userprofile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt") };
                 }
             }
         }

@@ -19,7 +19,7 @@ namespace Dotnet.Shell.Logic.Suggestions
         internal CmdSuggestions(API.Shell shell)
         {
             this.shell = shell;
-            this.commandsInPath = Task.FromResult(Array.Empty<string>());
+            commandsInPath = Task.FromResult(Array.Empty<string>());
         }
 
         public CmdSuggestions(API.Shell shell, Task<string[]> commandsInPath)

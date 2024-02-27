@@ -42,7 +42,7 @@ namespace Dotnet.Shell.Logic.Compilation
             get
             {
                 var vars = new Dictionary<string, object>();
-                foreach (var variable in this.scriptState.Variables)
+                foreach (var variable in scriptState.Variables)
                 {
                     if (!vars.ContainsKey(variable.Name))
                     {

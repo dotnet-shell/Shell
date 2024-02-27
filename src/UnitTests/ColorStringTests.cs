@@ -71,8 +71,8 @@ namespace UnitTests
             Assert.AreEqual(5, b.Length);
             Assert.AreEqual(5, a.Text.Length);
             Assert.AreEqual(5, b.Text.Length);
-            Assert.AreNotEqual(5, a.TextWithFormattingCharacters);
-            Assert.AreNotEqual(5, b.TextWithFormattingCharacters);
+            Assert.AreNotEqual("5", a.TextWithFormattingCharacters);
+            Assert.AreNotEqual("5", b.TextWithFormattingCharacters);
 
             Assert.IsTrue(a.Equals("hello"));
             Assert.IsFalse(a.Equals("goodbye"));

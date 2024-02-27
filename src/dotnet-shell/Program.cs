@@ -18,41 +18,33 @@ using Dotnet.Shell.Logic.Compilation;
 using Dotnet.Shell.UI.Standard;
 using Dotnet.Shell.Logic.Execution;
 using Dotnet.Shell.API;
+using dotshell.common;
 
 namespace Dotnet.Shell
 {
-    class Program
+    internal sealed class Program : Disposable
     {
-        private static readonly IConsole consoleInterface = new DotNetConsole();
-        private static readonly ErrorDisplay errorHelper = new(consoleInterface);
+        private readonly IConsole _consoleInterface;
+        private readonly ErrorDisplay _errorDisplay;
+        private ShellExecutor _executor;
 
-        static async Task Main(string[] args)
+
+        internal Program()
         {
-            var configDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nsh");
-            if (Directory.Exists(configDir))
-            {
-                ProfileOptimization.SetProfileRoot(Path.Combine(configDir, "profiles"));
-            }
+            _consoleInterface = new DotNetConsole();
+            _errorDisplay = new(_consoleInterface);
+            _executor = ShellExecutor.GetDefaultExecuterAsync(_errorDisplay).GetAwaiter().GetResult();
+        }
+
+        public async Task RunAsync(string[] args)
+        {
+            ConfigureProfile();
             ProfileOptimization.StartProfile("Startup.Profile");
 
             Parser.Default.ParseArguments<Settings>(args).WithParsed<Settings>(o => Settings.Default = o);
 
-            if (Settings.Default == null)
-            {
-                return;
-            }
             Settings.Default.AddComplexDefaults();
-
-            if (Settings.Default.EarlyDebuggerAttach)
-            {
-                Console.WriteLine("Now connect your debugger to "+ Environment.ProcessId);
-                while (!Debugger.IsAttached)
-                {
-                    Console.Write(".");
-                    await Task.Delay(1000);
-                }
-                Console.Clear();
-            }
+            await WaitForDebuggerAttach();
 
             if (!Settings.Default.DontRunWizard && !FirstRunWizard.WizardUI.Run())
             {
@@ -65,7 +57,7 @@ namespace Dotnet.Shell
                 try
                 {
                     var historyTask = OS.GetOSHistoryAsync();
-                    var box = new HistoryBox(consoleInterface);
+                    var box = new HistoryBox(_consoleInterface);
                     var result = await box.RunInterfaceAsync((await historyTask).ToList());
 
                     var response = API.HistoryAPI.SearchResultAsync(result, Settings.Default.APIPort, Settings.Default.Token);
@@ -76,9 +68,10 @@ namespace Dotnet.Shell
                 }
                 catch (Exception ex)
                 {
-                    errorHelper.PrettyException(ex);
+                    _errorDisplay.PrettyException(ex);
                     await Task.Delay(5 * 1000);
                 }
+
                 return;
             }
             else
@@ -104,196 +97,214 @@ namespace Dotnet.Shell
                         }
                     }
 
-                    Executer executor = await Executer.GetDefaultExecuterAsync(errorHelper);
-                    executor.Args.AddRange(scriptArgs);
 
-                    await executor.ExecuteFileAsync(script);
+                    _executor.Args.AddRange(scriptArgs);
+
+                    await _executor.ExecuteFileAsync(script);
                 }
                 else
                 {
                     ProfileOptimization.StartProfile("Interactive.Profile");
                     await StartInteractiveModeAsync(Settings.Default.UX);
-                }     
+                }
             }
         }
 
-        private static async Task StartInteractiveModeAsync(UserExperience ux)
+        private static async Task WaitForDebuggerAttach()
+        {
+            if (Settings.Default.EarlyDebuggerAttach)
+            {
+                Console.WriteLine("Now connect your debugger to " + Environment.ProcessId);
+                while (!Debugger.IsAttached)
+                {
+                    Console.Write(".");
+                    await Task.Delay(1000).ConfigureAwait(false);
+                }
+                Console.Clear();
+            }
+        }
+
+        private static void ConfigureProfile()
+        {
+            var configDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nsh");
+            if (Directory.Exists(configDir))
+            {
+                ProfileOptimization.SetProfileRoot(Path.Combine(configDir, "profiles"));
+            }
+        }
+
+        public  static async Task Main(string[] args)
+        {
+            using var p = new Program();
+            await p.RunAsync(args).ConfigureAwait(false);
+        }
+
+        private async Task StartInteractiveModeAsync(UserExperience ux)
         {
             using (var interactiveModeCancellationSource = new CancellationTokenSource())
             {
-                var executor = await Executer.GetDefaultExecuterAsync(errorHelper);
+                //var historyWritingTask = Task.Run(async () =>
+                //{
 
-                var historyToWrite = new List<HistoryItem>();
+                //    while (!interactiveModeCancellationSource.IsCancellationRequested)
+                //    {
+                //        await Task.Delay(TimeSpan.FromSeconds(60), interactiveModeCancellationSource.Token);
 
-                executor.Shell.CommandHandlers.Add((cmd) =>
-                {
-                    historyToWrite.Add(new HistoryItem(cmd, DateTime.UtcNow));
-                    return cmd;
-                });
+                //        if (!interactiveModeCancellationSource.IsCancellationRequested)
+                //        {
+                //            var localCopy = historyToWrite;
 
-                var historyWritingTask = Task.Run(async () => {
+                //            Interlocked.Exchange(ref historyToWrite, new List<HistoryItem>());
 
-                    while (!interactiveModeCancellationSource.IsCancellationRequested)
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(60), interactiveModeCancellationSource.Token);
-
-                        if (!interactiveModeCancellationSource.IsCancellationRequested)
-                        {
-                            var localCopy = historyToWrite;
-
-                            Interlocked.Exchange(ref historyToWrite, new List<HistoryItem>());
-
-                            if (localCopy.Count != 0)
-                            {
-                                await OS.WriteHistoryAsync(localCopy);
-                            }
-                        }
-                    }
-                }, interactiveModeCancellationSource.Token);
+                //            if (localCopy.Count != 0)
+                //            {
+                //                await OS.WriteHistoryAsync(localCopy);
+                //            }
+                //        }
+                //    }
+                //}, interactiveModeCancellationSource.Token);
 
                 CancellationTokenSource ctrlCCancellationSource = null;
 
-                Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs args) => {
+                Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs args) =>
+                {
                     args.Cancel = true;
-                    executor?.Shell?.ForegroundProcess?.SignalTerminate();
+                    _executor?.Shell?.ForegroundProcess?.SignalTerminate();
                     ctrlCCancellationSource?.Cancel();
                 };
 
-                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                await LoadAndExecuteCoreScriptAsync().ConfigureAwait(false);
+
+                var improvedConsole = new ConsoleImproved(_consoleInterface, _executor.Shell);
+
+                var searchFunction = ux == UserExperience.Classic ? HistorySearch.OnSearchHistory(_consoleInterface, _executor.Shell) :
+                                     ux == UserExperience.Enhanced ? HistoryBox.OnSearchHistory(_consoleInterface) : HistoryBox.OnSearchHistoryTmux();
+
+                var suggestor = new Logic.Suggestions.Suggestions(_executor.Shell);
+
+                improvedConsole.AddKeyOverride(new ConsoleKeyEx(ConsoleKey.R, ConsoleModifiers.Control), searchFunction);
+                improvedConsole.AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Tab), suggestor.OnTabSuggestCmdAsync);
+
+                await ConsoleLoopAsync(improvedConsole, ctrlCCancellationSource, interactiveModeCancellationSource).ConfigureAwait(false);
+            }
+        }
+
+        private async Task ConsoleLoopAsync(ConsoleImproved improvedConsole, CancellationTokenSource ctrlCCancellationSource, CancellationTokenSource interactiveModeCancellationSource)
+        {
+            var historyToWrite = CreateWriteHistoryCache();
+
+            while (true) // main command loop
+            {
+                improvedConsole.DisplayPrompt();
+                string input;
+
+                //await _executor.Shell.HistoryLoadedTask;
+
+                try
                 {
-                    var ctrlZHandler = new Thread(delegate ()
+                    using (ctrlCCancellationSource = new CancellationTokenSource())
                     {
-                        try
-                        {
-                            while (true)
-                            {
-                                var waitForCtrlZ = new UnixSignal(Signum.SIGTSTP);
-
-                                Task.Run(() => waitForCtrlZ.WaitOne(), interactiveModeCancellationSource.Token).Wait(interactiveModeCancellationSource.Token);
-
-                                if (!interactiveModeCancellationSource.IsCancellationRequested)
-                                {
-                                    Console.WriteLine();
-                                    executor?.Shell?.ForegroundProcess?.SignalSuspend();
-                                }
-                            }
-                        }
-                        catch
-                        {
-
-                        }
-                    });
-                    ctrlZHandler.Start();
+                        input = await improvedConsole.GetCommandAsync(ctrlCCancellationSource.Token);
+                    }
+                    ctrlCCancellationSource = null;
+                }
+                catch (TaskCanceledException ex)
+                {
+                    if (!ctrlCCancellationSource.IsCancellationRequested)
+                    {
+                        _errorDisplay.PrettyException(ex);
+                    }
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    _errorDisplay.PrettyException(ex);
+                    continue;
                 }
 
-                if (FindAndLoadCore(out string coreScript))
+                if (!string.IsNullOrWhiteSpace(input))
                 {
-                    try
+                    if (input == "#reset")
                     {
-                        await executor.ExecuteAsync(coreScript);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("An error occured loading core.nsh");
-                        errorHelper.PrettyException(ex, coreScript);
-                    }
-                }
-
-                var console = new ConsoleImproved(consoleInterface, executor.Shell);
-
-                var searchFunction = ux == UserExperience.Classic ? HistorySearch.OnSearchHistory(consoleInterface, executor.Shell) :
-                                     ux == UserExperience.Enhanced ? HistoryBox.OnSearchHistory(consoleInterface) : HistoryBox.OnSearchHistoryTmux();
-
-                var suggestor = new Logic.Suggestions.Suggestions(executor.Shell);
-
-                console.AddKeyOverride(new ConsoleKeyEx(ConsoleKey.R, ConsoleModifiers.Control), searchFunction);
-                console.AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Tab), suggestor.OnTabSuggestCmdAsync);
-
-                while (true) // main command loop
-                {
-                    console.DisplayPrompt();
-                    string input;
-
-#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
-                    await executor.Shell.HistoryLoadedTask;
-#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
-
-                    try
-                    {
-                        using (ctrlCCancellationSource = new CancellationTokenSource())
+                        _executor = await ShellExecutor.GetDefaultExecuterAsync(_errorDisplay);
+                        _executor.Shell.CommandHandlers.Add((cmd) =>
                         {
-                            input = await console.GetCommandAsync(ctrlCCancellationSource.Token);
-                        }
-                        ctrlCCancellationSource = null;
-                    }
-                    catch (TaskCanceledException ex)
-                    {
-                        if (!ctrlCCancellationSource.IsCancellationRequested)
-                        {
-                            errorHelper.PrettyException(ex);
-                        }
-                        continue;
-                    }
-                    catch (Exception ex)
-                    {
-                        errorHelper.PrettyException(ex);
+                            historyToWrite.Add(new HistoryItem(cmd, DateTime.UtcNow));
+                            return cmd;
+                        });
+                        await LoadAndExecuteCoreScriptAsync();
                         continue;
                     }
 
-                    if (!string.IsNullOrWhiteSpace(input))
+                    try
                     {
-                        if (input == "#reset")
-                        {
-                            executor = await Executer.GetDefaultExecuterAsync(errorHelper);
-                            executor.Shell.CommandHandlers.Add((cmd) =>
-                            {
-                                historyToWrite.Add(new HistoryItem(cmd, DateTime.UtcNow));
-                                return cmd;
-                            });
-                            await executor.ExecuteAsync(coreScript);
-                            continue;
-                        }
-
-                        try
-                        {
-                            input = executor.Shell.TryReplaceWithCSAlias(input);
-                            await executor.ExecuteAsync(input);
-                        }
-                        catch (ExitException)
-                        {
-                            interactiveModeCancellationSource.Cancel();
-                            await OS.WriteHistoryAsync(historyToWrite);
-                            break;
-                        }
-                        catch (PreProcessorSyntaxException ex)
-                        {
-                            errorHelper.PrettyException(ex);
-                        }
-                        catch (Exception ex)
-                        {
-                            errorHelper.PrettyException(ex, input);
-                        }
+                        input = _executor.Shell.TryReplaceWithCSAlias(input);
+                        await _executor.ExecuteAsync(input);
+                    }
+                    catch (ExitException)
+                    {
+                        await interactiveModeCancellationSource.CancelAsync();
+                        await OS.WriteHistoryAsync(historyToWrite);
+                        break;
+                    }
+                    catch (PreProcessorSyntaxException ex)
+                    {
+                        _errorDisplay.PrettyException(ex);
+                    }
+                    catch (Exception ex)
+                    {
+                        _errorDisplay.PrettyException(ex, input);
                     }
                 }
             }
         }
 
-        private static bool FindAndLoadCore(out string content)
+        private List<HistoryItem> CreateWriteHistoryCache()
+        {
+            var historyToWrite = new List<HistoryItem>();
+
+            _executor.Shell.CommandHandlers.Add((cmd) =>
+            {
+                historyToWrite.Add(new HistoryItem(cmd, DateTime.UtcNow));
+                return cmd;
+            });
+
+            return historyToWrite;
+        }
+
+        private async Task LoadAndExecuteCoreScriptAsync()
+        {
+            (var coreFound, var coreScript) = FindAndLoadCore();
+            if (coreFound)
+            {
+                try
+                {
+                    await _executor.ExecuteAsync(coreScript).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("An error occured loading core.nsh");
+                    _errorDisplay.PrettyException(ex, coreScript);
+                }
+            }
+        }
+
+        private static (bool success, string content) FindAndLoadCore()
         {
             if (File.Exists(Settings.Default.ProfileScriptPath))
             {
                 try
                 {
-                    content = File.ReadAllText(Settings.Default.ProfileScriptPath);
-                    return true;
+                    var content = File.ReadAllText(Settings.Default.ProfileScriptPath);
+                    return (true, content);
                 }
                 catch
                 {
+                    // ignore
                 }
             }
 
-            content = null;
-            return false;
+            return (false, null);
         }
     }
 }

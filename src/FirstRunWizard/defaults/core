@@ -9,54 +9,15 @@ using Dotnet.Shell.UI;
 // Custom prompt handling, this handler autodetects if powerline is availiable on Linux environments
 // Otherwise if falls back to an acceptable default
 bool? powerline = null;
-#region c#
-Shell.Prompt = () => 
-#endregion
-{
-      if (powerline == null && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-      {
-          var powerlineHelpOut=`which powerline`;
-          powerline = !string.IsNullOrWhiteSpace(powerlineHelpOut);
-      }
 
-      if (powerline == true)
-      {
-          string powerLinePrompt=`powerline-render shell left --last-exit-code=$Shell.LastExitCode$`;
-          return new ColorString("!", Color.Green, Color.LightBlue) + ColorString.FromRawANSI( powerLinePrompt );
-      }
-      else
-      {
-          return new ColorString("!" + Environment.UserName + "@" + Environment.MachineName, Color.Green) + new ColorString(" " + Shell.WorkingDirectory + ">", Color.Blue) + " ";
-      }
+Shell.Prompt = () => 
+{
+    return new ColorString(" " + Shell.WorkingDirectory + ">", Color.Blue) + " ";
 };
 
-// Add paths to Shell environment
-if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-{
-    Shell.Paths.Add("/bin");
-    Shell.Paths.Add("/sbin");
-    Shell.Paths.Add("/usr/bin");
-    Shell.Paths.Add("/usr/sbin");
-    Shell.Paths.Add("/usr/local/bin");
-    Shell.Paths.Add("/usr/local/sbin");
+Shell.Paths.Add("C:\\Windows");
+Shell.Paths.Add("C:\\Windows\\System32");
 
-    var userExes = Path.Combine(Shell.HomeDirectory, ".local", "bin");
-    if (Directory.Exists(userExes))
-    {
-        Shell.Paths.Add(userExes);
-    }
-
-    var dotnetTools = Path.Combine(Shell.HomeDirectory, ".dotnet", "tools");
-    if (Directory.Exists(dotnetTools))
-    {
-        Shell.Paths.Add(dotnetTools);
-    }
-}
-else
-{
-    Shell.Paths.Add("C:\\Windows");
-    Shell.Paths.Add("C:\\Windows\\System32");
-}
 
 // Load user functions store in homedir
 var functionsDir = Path.Combine(Shell.HomeDirectory, Shell.DefaultScriptExtension, "functions");
@@ -65,8 +26,10 @@ if (Directory.Exists(functionsDir))
     var functions = new List<string>();
     functions.AddRange(Directory.GetFiles(functionsDir, "*.csx*"));
     functions.AddRange(Directory.GetFiles(functionsDir, "*"+Shell.DefaultScriptExtension));
+
     foreach (var file in functions.OrderBy(q => q))
     {
+        Console.WriteLine(new ColorString($"Loading script - {file}", Color.Teal).TextWithFormattingCharacters);
         #load $file$
     }
 }

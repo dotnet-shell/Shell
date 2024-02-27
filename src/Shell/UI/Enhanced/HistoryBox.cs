@@ -38,7 +38,7 @@ namespace Dotnet.Shell.UI.Enhanced
         {
             await console.SaveAsync();
 
-            var command = await this.RunInterfaceAsync(prompt.Shell.History);
+            var command = await RunInterfaceAsync(prompt.Shell.History);
 
             await console.RestoreAsync();
 

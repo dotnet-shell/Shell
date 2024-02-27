@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Dotnet.Shell</RootNamespace>
     <AssemblyName>dotnet-shell</AssemblyName>
     <PackageId>dotnet-shell</PackageId>
@@ -41,11 +41,12 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="ConsoleGUI" Version="1.4.1" />
+    <PackageReference Include="ConsoleGUI" Version="1.4.2" />
     <PackageReference Include="Mono.Posix.NETStandard" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\dotshell.common\dotshell.common.csproj" />
     <ProjectReference Include="..\FirstRunWizard\FirstRunWizard.csproj" />
     <ProjectReference Include="..\Shell\dotnet-shell-lib.csproj" />
   </ItemGroup>

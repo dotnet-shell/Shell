@@ -39,8 +39,8 @@ namespace Dotnet.Shell.Logic.Console
         /// <param name="m">The m.</param>
         public ConsoleKeyEx(ConsoleKey? k, ConsoleModifiers m = 0)
         {
-            this.Key = k;
-            this.Modifier = m;
+            Key = k;
+            Modifier = m;
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace Dotnet.Shell.Logic.Console
                 }
                 else
                 {
-                    return (this.Key == yObj.Key && this.Modifier == yObj.Modifier);
+                    return (Key == yObj.Key && Modifier == yObj.Modifier);
                 }
             }
             return false;
@@ -91,7 +91,7 @@ namespace Dotnet.Shell.Logic.Console
         /// </returns>
         public bool Equals([AllowNull] ConsoleKeyEx other)
         {
-            return this.Equals(other as object);
+            return Equals(other as object);
         }
 
         /// <summary>
@@ -341,9 +341,9 @@ namespace Dotnet.Shell.Logic.Console
         /// <param name="shell">The shell.</param>
         public ConsoleImproved(IConsole consoleImplementation, Dotnet.Shell.API.Shell shell)
         {
-            this.implementation = consoleImplementation;
-            this.Shell = shell;
-            this.currentHistoryIndex = shell.History.Count != 0 ? shell.History.Count - 1 : 0;
+            implementation = consoleImplementation;
+            Shell = shell;
+            currentHistoryIndex = shell.History.Count != 0 ? shell.History.Count - 1 : 0;
 
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Backspace), OnBackSpaceAsync);
             AddKeyOverride(new ConsoleKeyEx(ConsoleKey.Delete), OnDeleteAsync);
