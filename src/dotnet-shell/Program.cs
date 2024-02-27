@@ -1,24 +1,23 @@
+using CommandLine;
+using Dotnet.Shell.API;
+using Dotnet.Shell.API.Helpers;
+using Dotnet.Shell.Logic;
+using Dotnet.Shell.Logic.Compilation;
+using Dotnet.Shell.Logic.Console;
+using Dotnet.Shell.Logic.Execution;
+using Dotnet.Shell.UI;
+using Dotnet.Shell.UI.Enhanced;
+using Dotnet.Shell.UI.Standard;
+using dotshell.common;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Runtime;
-using Mono.Unix;
-using Mono.Unix.Native;
-using System.Runtime.InteropServices;
-using CommandLine;
-using System.Diagnostics;
-using Dotnet.Shell.Logic.Console;
-using Dotnet.Shell.UI;
-using Dotnet.Shell.Logic;
-using Dotnet.Shell.UI.Enhanced;
-using Dotnet.Shell.Logic.Compilation;
-using Dotnet.Shell.UI.Standard;
-using Dotnet.Shell.Logic.Execution;
-using Dotnet.Shell.API;
-using dotshell.common;
 
 namespace Dotnet.Shell
 {
@@ -48,6 +47,7 @@ namespace Dotnet.Shell
 
             if (!Settings.Default.DontRunWizard && !FirstRunWizard.WizardUI.Run())
             {
+                ConsoleEx.WriteLine("First Time Wizard must be run", Color.Red);
                 return;
             }
 
@@ -60,7 +60,7 @@ namespace Dotnet.Shell
                     var box = new HistoryBox(_consoleInterface);
                     var result = await box.RunInterfaceAsync((await historyTask).ToList());
 
-                    var response = API.HistoryAPI.SearchResultAsync(result, Settings.Default.APIPort, Settings.Default.Token);
+                    var response = API.HistoryApi.SearchResultAsync(result, Settings.Default.APIPort, Settings.Default.Token);
 
                     Console.Clear();
 
@@ -76,33 +76,7 @@ namespace Dotnet.Shell
             }
             else
             {
-                var fileArguments = args.Where(x => x.EndsWith(".csx") || x.EndsWith(".cs") || x.EndsWith(Dotnet.Shell.API.Shell.DefaultScriptExtension));
-
-                if (fileArguments.Any())
-                {
-                    ProfileOptimization.StartProfile("Script.Profile");
-                    var script = fileArguments.First();
-                    List<string> scriptArgs = new();
-                    bool startCollecting = false;
-                    for (int x = 0; x < args.Length; x++)
-                    {
-                        if (args[x] == script)
-                        {
-                            startCollecting = true;
-                            continue;
-                        }
-                        else if (startCollecting)
-                        {
-                            scriptArgs.Add(args[x]);
-                        }
-                    }
-
-
-                    _executor.Args.AddRange(scriptArgs);
-
-                    await _executor.ExecuteFileAsync(script);
-                }
-                else
+                if (!await ExcutedCommandLineScript(args))
                 {
                     ProfileOptimization.StartProfile("Interactive.Profile");
                     await StartInteractiveModeAsync(Settings.Default.UX);
@@ -110,11 +84,43 @@ namespace Dotnet.Shell
             }
         }
 
+        private async Task<bool> ExcutedCommandLineScript(string[] args)
+        {
+            var fileArguments = args.Where(x => x.EndsWith(".csx") || x.EndsWith(".cs") || x.EndsWith(Dotnet.Shell.API.Shell.DefaultScriptExtension)).ToArray();
+
+            if (fileArguments.Length > 0)
+            {
+                ProfileOptimization.StartProfile("Script.Profile");
+
+                var script = fileArguments[0];
+
+                var scriptArgs = new List<string>();
+
+                for (int x = 0; x < args.Length; x++)
+                {
+                    if (args[x] == script)
+                    {
+                        var scriptOptions= args.Skip(x).ToArray();
+                        scriptArgs.AddRange(scriptOptions);
+                        break;
+                    }
+                }
+
+                _executor.Args.AddRange(scriptArgs);
+
+                await _executor.ExecuteFileAsync(script);
+
+                return true;
+            }
+
+            return false;
+        }
+
         private static async Task WaitForDebuggerAttach()
         {
             if (Settings.Default.EarlyDebuggerAttach)
             {
-                Console.WriteLine("Now connect your debugger to " + Environment.ProcessId);
+                ConsoleEx.WriteLine($"Now connect your debugger to {Environment.ProcessId}", Color.GhostWhite );
                 while (!Debugger.IsAttached)
                 {
                     Console.Write(".");
@@ -133,7 +139,7 @@ namespace Dotnet.Shell
             }
         }
 
-        public  static async Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
             using var p = new Program();
             await p.RunAsync(args).ConfigureAwait(false);

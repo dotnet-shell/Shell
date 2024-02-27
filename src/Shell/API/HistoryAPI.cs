@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Dotnet.Shell.API
 {
-    public class HistoryAPI
+    public class HistoryApi
     {
         /// <summary>
         /// Searches the user history for a specific term.
@@ -51,22 +51,24 @@ namespace Dotnet.Shell.API
                 }
                 catch (SocketException)
                 {
-
+                    // ignore
                 }
             }
 
             onStartedListening?.Invoke(port, token);
 
             using (var client = await listener.AcceptTcpClientAsync())
-            using (var sr = new StreamReader(client.GetStream()))
             {
-                var clientToken = await sr.ReadLineAsync();
-                if (clientToken != token)
+                using (var sr = new StreamReader(client.GetStream()))
                 {
-                    throw new InvalidDataException("Invalid token");
-                }
+                    var clientToken = await sr.ReadLineAsync();
+                    if (clientToken != token)
+                    {
+                        throw new InvalidDataException("Invalid token");
+                    }
 
-                result = await sr.ReadLineAsync();
+                    result = await sr.ReadLineAsync();
+                }
             }
 
             listener.Stop();

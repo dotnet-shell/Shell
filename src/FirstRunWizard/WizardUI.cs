@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace FirstRunWizard
 {
-    public class WizardUI
+    public sealed class WizardUI
     {
         private readonly string firstRunFilename = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nsh", ".firstrun");
 
@@ -16,7 +16,7 @@ namespace FirstRunWizard
         /// <returns>If False stop execution of the shell, user need to do work</returns>
         public static bool Run()
         {
-            WizardUI wiz = new();
+            var wiz = new WizardUI();
             return wiz.StartInteractive();
         }
 

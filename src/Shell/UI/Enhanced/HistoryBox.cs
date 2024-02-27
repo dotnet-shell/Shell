@@ -59,7 +59,7 @@ namespace Dotnet.Shell.UI.Enhanced
         {
             ProcessEx tmuxPopup = null;
 
-            var result = HistoryAPI.ListenForSearchResultAsync((port, token) => {
+            var result = HistoryApi.ListenForSearchResultAsync((port, token) => {
                 var cssCommand = string.Format(Settings.Default.HistoryPopupCommand, API.Shell.AssemblyLocation, port, token);
                 var tmuxCommand = string.Format(Settings.Default.PopupCommand, cssCommand);
 

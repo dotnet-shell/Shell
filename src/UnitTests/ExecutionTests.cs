@@ -10,13 +10,16 @@ using System.Threading.Tasks;
 namespace UnitTests
 {
     [TestClass]
-    public class ExecutionTests
+    public sealed class ExecutionTests
     {
         [TestMethod]
         public async Task ConstructAsync()
         {
-            var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            _ = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
+            await ShouldNotThrow(async () =>
+            {
+                var errorDisplay = new ErrorDisplay(new AssertingConsole());
+                _ = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
+            });
         }
 
         [TestMethod]
@@ -43,6 +46,7 @@ namespace UnitTests
             }
             catch (CompilationErrorException)
             {
+                // ignore
             }
             finally
             {
@@ -53,41 +57,84 @@ namespace UnitTests
         [TestMethod]
         public async Task LoadAssemblyFromFile_DLLAsync()
         {
-            var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
-            await exe.LoadAssemblyFromFileAsync(Assembly.GetExecutingAssembly().Location);
+            await ShouldNotThrow(async () =>
+            {
+                var errorDisplay = new ErrorDisplay(new AssertingConsole());
+                var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
+                await exe.LoadAssemblyFromFileAsync(Assembly.GetExecutingAssembly().Location);
+            });
         }
 
         [TestMethod]
         public async Task Load_nshAsync()
         {
-            var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
-            await exe.ExecuteFileAsync(@".\TestFiles\nshScriptTest.nsh".Replace('\\', Path.DirectorySeparatorChar));
+            await ShouldNotThrow(async () =>
+            {
+                var errorDisplay = new ErrorDisplay(new AssertingConsole());
+                var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
+                await exe.ExecuteFileAsync(@".\TestFiles\nshScriptTest.nsh".Replace('\\', Path.DirectorySeparatorChar));
+            });
         }
 
         [TestMethod]
         public async Task Load_CSAsync()
         {
-            var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
-            await exe.ExecuteFileAsync(@".\TestFiles\csScriptTest.cs".Replace('\\', Path.DirectorySeparatorChar));
+            await ShouldNotThrow(async () =>
+            {
+                var errorDisplay = new ErrorDisplay(new AssertingConsole());
+                var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
+                await exe.ExecuteFileAsync(@".\TestFiles\csScriptTest.cs".Replace('\\', Path.DirectorySeparatorChar));
+            });
         }
 
         [TestMethod]
         public async Task AccessShellAPIAsync()
         {
-            var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
-            await exe.ExecuteAsync("Console.WriteLine( Shell.WorkingDirectory );");
+            await ShouldNotThrow(async () =>
+            {
+                var errorDisplay = new ErrorDisplay(new AssertingConsole());
+                var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
+                await exe.ExecuteAsync("Console.WriteLine( Shell.WorkingDirectory );");
+            });
         }
 
         [TestMethod]
         public async Task AccessColorStringAsync()
         {
-            var errorDisplay = new ErrorDisplay(new AssertingConsole());
-            var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
-            await exe.ExecuteAsync("using System.Drawing; Console.WriteLine( new ColorString(\"Hello\", Color.Red) );");
+            await ShouldNotThrow(async () =>
+            {
+                var errorDisplay = new ErrorDisplay(new AssertingConsole());
+                var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
+                await exe.ExecuteAsync("using System.Drawing; Console.WriteLine( new ColorString(\"Hello\", Color.Red) );");
+            });
+        }
+        [TestMethod]
+        public async Task AccessConsoleExAsync()
+        {
+            await ShouldNotThrow(async () =>
+            {
+                var errorDisplay = new ErrorDisplay(new AssertingConsole());
+                var exe = await ShellExecutor.GetDefaultExecuterAsync(errorDisplay);
+                await exe.ExecuteAsync("using System.Drawing; using Dotnet.Shell.API.Helpers; ConsoleEx.WriteLine(\"Hello\", Color.Red);");
+            });
+        }
+
+        private static async Task ShouldNotThrow(Func<Task> action)
+        {
+            try
+            {
+                if (action != null)
+                {
+                    await action();
+                    return;
+                }
+
+                throw new NullReferenceException(nameof(action));
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail("Expected no exception, but got: " + ex.Message);
+            }
         }
     }
 }
