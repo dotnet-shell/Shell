@@ -9,6 +9,7 @@ using Dotnet.Shell.UI;
 using Dotnet.Shell.UI.Enhanced;
 using Dotnet.Shell.UI.Standard;
 using dotshell.common;
+using FirstRunWizard;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -25,8 +26,7 @@ namespace Dotnet.Shell
     {
         private readonly IConsole _consoleInterface;
         private readonly ErrorDisplay _errorDisplay;
-        private ShellExecutor _executor;
-
+        private readonly ShellExecutor _executor;
 
         internal Program()
         {
@@ -45,7 +45,7 @@ namespace Dotnet.Shell
             Settings.Default.AddComplexDefaults();
             await WaitForDebuggerAttach();
 
-            if (!Settings.Default.DontRunWizard && !FirstRunWizard.WizardUI.Run())
+            if (!Settings.Default.DontRunWizard && !FirstRunWizard.WizardUi.Run())
             {
                 ConsoleEx.WriteLine("First Time Wizard must be run", Color.Red);
                 return;
@@ -71,8 +71,6 @@ namespace Dotnet.Shell
                     _errorDisplay.PrettyException(ex);
                     await Task.Delay(5 * 1000);
                 }
-
-                return;
             }
             else
             {
@@ -230,15 +228,10 @@ namespace Dotnet.Shell
 
                 if (!string.IsNullOrWhiteSpace(input))
                 {
-                    if (input == "#reset")
+                    if (input == "#reload_scripts")
                     {
-                        _executor = await ShellExecutor.GetDefaultExecuterAsync(_errorDisplay);
-                        _executor.Shell.CommandHandlers.Add((cmd) =>
-                        {
-                            historyToWrite.Add(new HistoryItem(cmd, DateTime.UtcNow));
-                            return cmd;
-                        });
-                        await LoadAndExecuteCoreScriptAsync();
+                        ConsoleEx.WriteLine("Re-downloading util scripts", Color.OrangeRed);
+                        WizardUi.DownloadCoreScripts();
                         continue;
                     }
 

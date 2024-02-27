@@ -1,12 +1,16 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace FirstRunWizard
 {
-    public sealed class WizardUI
+    public class WizardUi
     {
         private readonly string firstRunFilename = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nsh", ".firstrun");
 
@@ -16,7 +20,7 @@ namespace FirstRunWizard
         /// <returns>If False stop execution of the shell, user need to do work</returns>
         public static bool Run()
         {
-            var wiz = new WizardUI();
+            var wiz = new WizardUi();
             return wiz.StartInteractive();
         }
 
@@ -102,7 +106,7 @@ namespace FirstRunWizard
         }
 
         private bool HasWizardRunBefore()
-        {           
+        {
             return File.Exists(firstRunFilename);
         }
 
@@ -131,10 +135,36 @@ Settings file such as in the following snippet:
             Console.WriteLine(@"""commandline"": ""bash -c \""/usr/local/bin/tmux -2 new-session '~/.dotnet/tools/dotnet-shell --ux TmuxEnhanced'\""""");
         }
 
-        private static void DownloadCoreScripts()
+        public static void DownloadCoreScripts()
         {
-            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nsh", "functions");
-            RunAndGetStdOut("git", "clone https://github.com/dotnet-shell/CoreScripts \""+dir+"\"");
+            var downloadTask = Task.Run(async () =>
+                {
+                    var scriptDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nsh", "functions");
+                    using var webClient = new HttpClient();
+                    var zippedData = await webClient.GetByteArrayAsync("http://thelogster.com/corescripts/CoreScripts.zip");
+
+                    if (zippedData != null && zippedData.Length > 0)
+                    {
+                        UnzipBytes(zippedData, scriptDir);
+                    }
+                });
+            downloadTask.Wait();
+        }
+
+        private static void UnzipBytes(byte[] zippedBytes, string extractPath)
+        {
+            using (MemoryStream memoryStream = new MemoryStream(zippedBytes))
+            {
+                using (ZipArchive zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Read))
+                {
+                    foreach (ZipArchiveEntry entry in zipArchive.Entries)
+                    {
+                        string entryPath = Path.Combine(extractPath, entry.FullName);
+                        Directory.CreateDirectory(Path.GetDirectoryName(entryPath));
+                        entry.ExtractToFile(entryPath, overwrite: true);
+                    }
+                }
+            }
         }
 
         private static void CreateEmptyCoreScriptsDir()
