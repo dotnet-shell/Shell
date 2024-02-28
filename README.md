@@ -151,7 +151,6 @@ Visual Studio solutions and VS Code projects are published with this repo. Other
 **i-am-shodan** (Original Project)
 
 * Github: [@TheLogster](https://github.com/Thelogster
-* Twitter: [@therealshodan](https://twitter.com/therealshodan)
 * Github: [@i-am-shodan](https://github.com/i-am-shodan)
 
 
