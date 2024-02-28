@@ -36,6 +36,7 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.Features" Version="4.8.0" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" Version="4.8.0" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.8.0" />
+		<PackageReference Include="thelogster.Utils.Core" Version="1.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -43,10 +44,6 @@
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
 		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\..\dotshell.common\dotshell.common.csproj" />
 	</ItemGroup>
 
 </Project>

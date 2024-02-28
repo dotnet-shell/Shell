@@ -8,7 +8,6 @@ using Dotnet.Shell.Logic.Execution;
 using Dotnet.Shell.UI;
 using Dotnet.Shell.UI.Enhanced;
 using Dotnet.Shell.UI.Standard;
-using dotshell.common;
 using FirstRunWizard;
 using System;
 using System.Collections.Generic;
@@ -19,6 +18,7 @@ using System.Linq;
 using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
+using Utils.Core.System;
 
 namespace Dotnet.Shell
 {

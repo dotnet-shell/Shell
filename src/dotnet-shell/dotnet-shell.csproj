@@ -7,9 +7,9 @@
     <AssemblyName>dotnet-shell</AssemblyName>
     <PackageId>dotnet-shell</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageProjectUrl>https://github.com/dotnet-shell</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/TheLogster/CSharpShell</PackageProjectUrl>
     <PackageLicenseExpression></PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/dotnet-shell</RepositoryUrl>
+    <RepositoryUrl>https://github.com/TheLogster/CSharpShell</RepositoryUrl>
     <Description>dotnet-shell is an interactive BASH-like shell based on CSharp script (CSX)</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackAsTool>true</PackAsTool>
@@ -18,6 +18,7 @@
     <Product>dotnet-shell</Product>
     <Version>1.0.1.2</Version>
     <AssemblyVersion>1.0.1.2</AssemblyVersion>
+    <ApplicationIcon>MAC01.ICO</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -33,6 +34,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="MAC01.ICO" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
@@ -43,10 +48,10 @@
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="ConsoleGUI" Version="1.4.2" />
     <PackageReference Include="Mono.Posix.NETStandard" Version="1.0.0" />
+    <PackageReference Include="thelogster.Utils.Core" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\dotshell.common\dotshell.common.csproj" />
     <ProjectReference Include="..\FirstRunWizard\FirstRunWizard.csproj" />
     <ProjectReference Include="..\Shell\dotnet-shell-lib.csproj" />
   </ItemGroup>

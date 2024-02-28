@@ -18,8 +18,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-shell", "src\dotnet-
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-shell-lib", "src\Shell\dotnet-shell-lib.csproj", "{72CED60A-8302-4F4E-8437-B0963BB82EBB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotshell.common", "dotshell.common\dotshell.common.csproj", "{F4EC4FAB-0AAA-4B4A-A9BC-EC8C9EF1A701}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CoreScripts", "CoreScripts", "{152711A0-4E81-4E4B-9C63-6F7EEAD41F35}"
 	ProjectSection(SolutionItems) = preProject
 		CoreScripts\00_AutoCompleteHistory.csx = CoreScripts\00_AutoCompleteHistory.csx
@@ -49,10 +47,6 @@ Global
 		{72CED60A-8302-4F4E-8437-B0963BB82EBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72CED60A-8302-4F4E-8437-B0963BB82EBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72CED60A-8302-4F4E-8437-B0963BB82EBB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F4EC4FAB-0AAA-4B4A-A9BC-EC8C9EF1A701}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F4EC4FAB-0AAA-4B4A-A9BC-EC8C9EF1A701}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F4EC4FAB-0AAA-4B4A-A9BC-EC8C9EF1A701}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F4EC4FAB-0AAA-4B4A-A9BC-EC8C9EF1A701}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -62,7 +56,6 @@ Global
 		{EC84DB46-B988-4EDC-834B-A7EF01F661B4} = {657BCD33-DCB1-461E-B9A8-C721F7F21098}
 		{7B39EAE1-7C82-480C-95D0-1B202B78FCDF} = {657BCD33-DCB1-461E-B9A8-C721F7F21098}
 		{72CED60A-8302-4F4E-8437-B0963BB82EBB} = {657BCD33-DCB1-461E-B9A8-C721F7F21098}
-		{F4EC4FAB-0AAA-4B4A-A9BC-EC8C9EF1A701} = {657BCD33-DCB1-461E-B9A8-C721F7F21098}
 		{152711A0-4E81-4E4B-9C63-6F7EEAD41F35} = {1CF1FF3B-7E70-43B7-BFC2-05690943BBEF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

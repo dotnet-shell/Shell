@@ -17,4 +17,8 @@
     <EmbeddedResource Include="defaults\core" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="thelogster.Utils.Core" Version="1.0.0" />
+  </ItemGroup>
+
 </Project>
