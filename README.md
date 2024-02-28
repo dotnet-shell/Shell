@@ -4,9 +4,6 @@
   <a href="https://en.wikipedia.org/wiki/MIT_License" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
   </a>
-  <a href="https://twitter.com/therealshodan" target="_blank">
-    <img alt="Twitter: therealshodan" src="https://img.shields.io/twitter/follow/therealshodan.svg?style=social" />
-  </a>
 </p>
 
 dotnet-shell is a replacement for your *Unix shell (bash,sh,dash etc) that brings C#/Dotnet to the command line in a familiar and Bash-like syntax. It combines the best of C# with the shell commands you already know. If you've used [dotnetscript](https://github.com/filipw/dotnet-script)
@@ -150,12 +147,13 @@ Visual Studio solutions and VS Code projects are published with this repo. Other
     dotnet src/Shell/bin/Debug/net8.0/dotnet-shell.dll
     
 ## Authors
+**Logie Urquhart** (Took over 2/2004)
 **i-am-shodan** (Original Project)
-**Logie Urquhart** (Took over 2/2004(
 
+* Github: [@TheLogster](https://github.com/Thelogster
 * Twitter: [@therealshodan](https://twitter.com/therealshodan)
 * Github: [@i-am-shodan](https://github.com/i-am-shodan)
-* * Github: [@TheLogster](https://github.com/Thelogster
+
 
 ## Contributing
 
@@ -163,8 +161,8 @@ Contributions, issues and feature requests are welcome!<br />Feel free to check 
 
 ## License
 
-Copyright © 2021 [i-am-shodan](https://github.com/i-am-shodan).<br />
 Copyright © 2024 [Logie Urquhart](https://github.com/TheLogster).<br />
+Copyright © 2021 [i-am-shodan](https://github.com/i-am-shodan).<br />
 This project is [MIT](https://en.wikipedia.org/wiki/MIT_License) licensed.
 
 
