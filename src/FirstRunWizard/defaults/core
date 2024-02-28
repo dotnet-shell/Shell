@@ -1,23 +1,15 @@
-﻿// ~/.csxx/core.nsh is executed by dotnet-shell for all interactive shells.
-// see https://github.com/dotnet-shell/ExampleScripts for more examples
-
-// Default includes
+﻿// Default includes
 using System.Runtime.InteropServices;
 using System.Drawing;
 using Dotnet.Shell.UI;
 
-// Custom prompt handling, this handler autodetects if powerline is availiable on Linux environments
-// Otherwise if falls back to an acceptable default
-bool? powerline = null;
-
 Shell.Prompt = () => 
 {
-    return new ColorString(" " + Shell.WorkingDirectory + ">", Color.Blue) + " ";
+    return new ColorString(" " + Shell.WorkingDirectory + ">", Color.LightBlue) + " ";
 };
 
 Shell.Paths.Add("C:\\Windows");
 Shell.Paths.Add("C:\\Windows\\System32");
-
 
 // Load user functions store in homedir
 var functionsDir = Path.Combine(Shell.HomeDirectory, Shell.DefaultScriptExtension, "functions");
