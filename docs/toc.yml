@@ -1,6 +1,0 @@
-﻿- name: Home
-  href: index.md
-- name: Custom prompts
-  href: prompts.md
-- name: API Documentation
-  href: obj/api/
