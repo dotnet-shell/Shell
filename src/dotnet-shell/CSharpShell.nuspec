@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<package>
+    <metadata>
+        <id>CSharpShell</id>
+        <version>1.0.0</version>
+        <authors>Logie Urquhart</authors>
+        <owners>Logie Urquhart</owners>
+        <description>The CSharp Shell</description>
+    </metadata>
+</package>
