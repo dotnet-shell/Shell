@@ -238,7 +238,7 @@ namespace Dotnet.Shell.API
         /// API call to changes the working directory.
         /// </summary>
         /// <param name="location">The location.</param>
-        /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
         public void ChangeDir(string location)
         {
             if (string.IsNullOrWhiteSpace(location))
@@ -268,7 +268,7 @@ namespace Dotnet.Shell.API
         /// </summary>
         /// <param name="file">The file path</param>
         /// <returns></returns>
-        /// <exception cref="System.IO.FileNotFoundException">The file requested: " + file + " does not exist and cannot be loaded</exception>
+        /// <exception cref="FileNotFoundException">The file requested: " + file + " does not exist and cannot be loaded</exception>
         public string ConvertPathToAbsolute(string file)
         {
             if (!File.Exists(file))

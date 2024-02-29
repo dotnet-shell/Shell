@@ -6,8 +6,6 @@ using Dotnet.Shell.Logic.Compilation;
 using Dotnet.Shell.Logic.Console;
 using Dotnet.Shell.Logic.Execution;
 using Dotnet.Shell.UI;
-using Dotnet.Shell.UI.Enhanced;
-using Dotnet.Shell.UI.Standard;
 using FirstRunWizard;
 using System;
 using System.Collections.Generic;
@@ -18,6 +16,7 @@ using System.Linq;
 using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
+using UI;
 using Utils.Core.System;
 
 namespace Dotnet.Shell
@@ -40,7 +39,7 @@ namespace Dotnet.Shell
             ConfigureProfile();
             ProfileOptimization.StartProfile("Startup.Profile");
 
-            Parser.Default.ParseArguments<Settings>(args).WithParsed<Settings>(o => Settings.Default = o);
+            Parser.Default.ParseArguments<Settings>(args).WithParsed(o => Settings.Default = o);
 
             Settings.Default.AddComplexDefaults();
             await WaitForDebuggerAttach();
@@ -181,8 +180,7 @@ namespace Dotnet.Shell
 
                 var improvedConsole = new ConsoleImproved(_consoleInterface, _executor.Shell);
 
-                var searchFunction = ux == UserExperience.Classic ? HistorySearch.OnSearchHistory(_consoleInterface, _executor.Shell) :
-                                     ux == UserExperience.Enhanced ? HistoryBox.OnSearchHistory(_consoleInterface) : HistoryBox.OnSearchHistoryTmux();
+                var searchFunction = HistoryBox.OnSearchHistory(_consoleInterface);
 
                 var suggestor = new Logic.Suggestions.Suggestions(_executor.Shell);
 

@@ -10,7 +10,7 @@ namespace Dotnet.Shell.UI
     /// <summary>
     /// This class handles displaying of errors to the screen
     /// </summary>
-    /// <seealso cref="Microsoft.Extensions.Options.IOptionsMonitor&lt;Microsoft.Extensions.Logging.Console.ConsoleLoggerOptions&gt;" />
+    /// <seealso cref="IOptionsMonitor&lt;ConsoleLoggerOptions&gt;" />
     public class ErrorDisplay : IOptionsMonitor<ConsoleLoggerOptions>
     {
         private readonly IConsole console;

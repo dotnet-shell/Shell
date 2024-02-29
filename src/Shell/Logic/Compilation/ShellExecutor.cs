@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
+using Dotnet.Shell.API.Helpers;
 using Dotnet.Shell.Logic.Execution;
 using Dotnet.Shell.UI;
 using Microsoft.CodeAnalysis;
@@ -21,10 +24,12 @@ namespace Dotnet.Shell.Logic.Compilation
     /// </summary>
     public class ShellExecutor
     {
+        public const string LOAD_MARKER = "#load ";
+
         private readonly ErrorDisplay errorHelper;
-        private readonly ConcurrentQueue<string> runOnCompletion = new();
-        private readonly SourceProcessor nshProcessor = new();
-        private readonly InteractiveRunner runner;
+        private readonly ConcurrentQueue<string> _runOnCompletionQueue = new();
+        private readonly SourceProcessor _sourceProcessor = new();
+        private readonly InteractiveRunner _interactiveRunner;
 
         /// <summary>
         /// Gets the shell.
@@ -32,7 +37,7 @@ namespace Dotnet.Shell.Logic.Compilation
         /// <value>
         /// The shell.
         /// </value>
-        public Dotnet.Shell.API.Shell Shell => runner.ScriptVariables["Shell"] as Dotnet.Shell.API.Shell;
+        public API.Shell Shell => _interactiveRunner.ScriptVariables["Shell"] as API.Shell;
 
         /// <summary>
         /// Gets the internal arguments the user/script has created
@@ -40,7 +45,7 @@ namespace Dotnet.Shell.Logic.Compilation
         /// <value>
         /// The arguments.
         /// </value>
-        public List<string> Args => runner.ScriptVariables["Args"] as List<string>;
+        public List<string> Args => _interactiveRunner.ScriptVariables["Args"] as List<string>;
 
         /// <summary>
         /// Gets the default execution environment asynchronously.
@@ -55,7 +60,7 @@ namespace Dotnet.Shell.Logic.Compilation
             executer.Shell.EnvironmentVariables = () =>
             {
                 var ret = new Dictionary<string, string>();
-                foreach (var variable in executer.runner.ScriptVariables)
+                foreach (var variable in executer._interactiveRunner.ScriptVariables)
                 {
                     // this next bit is crucial for C# working well in a shell environment
                     // c# variables are treated like environment variables but unlike Bash
@@ -81,18 +86,18 @@ namespace Dotnet.Shell.Logic.Compilation
             {
                 if (file.EndsWith(Dotnet.Shell.API.Shell.DefaultScriptExtension))
                 {
-                    var result = await executer.nshProcessor.ProcessAsync(File.ReadAllText(file));
+                    var result = await executer._sourceProcessor.ProcessAsync(File.ReadAllText(file));
 
                     if (Settings.Default.ShowPreProcessorOutput)
                     {
                         ErrorDisplay.PrettyInfo(result);
                     }
 
-                    executer.runOnCompletion.Enqueue(result);
+                    executer._runOnCompletionQueue.Enqueue(result);
                 }
                 else
                 {
-                    executer.runOnCompletion.Enqueue("#load \""+file+"\"");
+                    executer._runOnCompletionQueue.Enqueue("#load \""+file+"\"");
                 }
             };
 
@@ -107,7 +112,7 @@ namespace Dotnet.Shell.Logic.Compilation
         private ShellExecutor(ErrorDisplay errorHelper)
         {
             this.errorHelper = errorHelper;
-            runner = new InteractiveRunner(errorHelper);
+            _interactiveRunner = new InteractiveRunner(errorHelper);
         }
 
         /// <summary>
@@ -115,7 +120,7 @@ namespace Dotnet.Shell.Logic.Compilation
         /// </summary>
         /// <param name="dll">The DLL.</param>
         /// <returns>Task</returns>
-        /// <exception cref="System.IO.FileNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public Task LoadAssemblyFromFileAsync(string dll)
         {
             if (!File.Exists(dll))
@@ -123,14 +128,14 @@ namespace Dotnet.Shell.Logic.Compilation
                 throw new FileNotFoundException(dll);
             }
 
-            runOnCompletion.Enqueue("#r \"" + dll + "\"");
+            _runOnCompletionQueue.Enqueue("#r \"" + dll + "\"");
 
             return Task.CompletedTask;
         }
 
         private async Task CreateDefaultShellAsync()
         {
-            var script = @"
+            var script = new StringBuilder( @"
 #r ""dotnet-shell-lib.dll""
 using Dotnet.Shell;
 using Dotnet.Shell.UI;
@@ -143,15 +148,16 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CSharp;
 var Args = new List<string>();
-";
+");
+
 
             foreach (var u in Settings.Default.AdditionalUsings)
             {
-                script += "using " + u + ";"+Environment.NewLine;
+                script.AppendLine($"using {u};");
             }
-            script += "var Shell = new Shell();";
+            script.AppendLine("var Shell = new Shell();");
 
-            await runner.ExecuteAsync(script, Environment.CurrentDirectory);
+            await _interactiveRunner.ExecuteAsync(script.ToString(), Environment.CurrentDirectory);
         }
 
         /// <summary>
@@ -166,27 +172,34 @@ var Args = new List<string>();
             {
                 if (preprocess)
                 {
-                    line = await nshProcessor.ProcessAsync(line);
+                    line = await _sourceProcessor.ProcessAsync(line);
                     if (Settings.Default.ShowPreProcessorOutput)
                     {
                         ErrorDisplay.PrettyInfo(line);
                     }
                 }
 
-                const string LOAD = "#load ";
-                if (line.StartsWith(LOAD) && line.EndsWith(".cs\""))
+                
+                if (line.StartsWith(LOAD_MARKER) && line.EndsWith(".cs\""))
                 {
                     // we want to #load some CS, we can do this!
-                    await CompileNewAssemblyAsync(await File.ReadAllTextAsync( line.Remove(0, LOAD.Length).Trim('"')));
+                    await CompileNewAssemblyAsync(await File.ReadAllTextAsync( line.Remove(0, LOAD_MARKER.Length).Trim('"')));
+                }
+                else if (line.StartsWith("#list"))
+                {
+                    foreach (var v in _interactiveRunner.ScriptVariables)
+                    {
+                        ConsoleEx.WriteLine(v.ToString(), Color.LightCyan);
+                    }
                 }
                 else
                 {
-                    if (depth == 0 && line.EndsWith(";")/* && !new Regex(@"^.+\w+.+=.+;$").IsMatch(line)*/)
+                    if (depth == 0 && line.EndsWith(';')  /* && !new Regex(@"^.+\w+.+=.+;$").IsMatch(line)*/)
                     {
                         line = line.TrimEnd(';');
                     }
 
-                    var ret = await runner.ExecuteAsync(line, Shell.WorkingDirectory);
+                    var ret = await _interactiveRunner.ExecuteAsync(line, Shell.WorkingDirectory);
 
                     if (ret != null && ret is not ProcessEx)
                     {
@@ -212,9 +225,9 @@ var Args = new List<string>();
                 }
             }
 
-            while (!runOnCompletion.IsEmpty && depth == 0)
+            while (!_runOnCompletionQueue.IsEmpty && depth == 0)
             {
-                if (runOnCompletion.TryDequeue(out string script))
+                if (_runOnCompletionQueue.TryDequeue(out string script))
                 {
                     await ExecuteAsync(script, 0, false);
                 }
@@ -232,9 +245,9 @@ var Args = new List<string>();
                 // this will queue up a execution 
                 await Shell.LoadScriptFromFileAsync(file);
 
-                while (!runOnCompletion.IsEmpty)
+                while (!_runOnCompletionQueue.IsEmpty)
                 {
-                    if (runOnCompletion.TryDequeue(out string script))
+                    if (_runOnCompletionQueue.TryDequeue(out string script))
                     {
                         await ExecuteAsync(script, 0, false);
                     }

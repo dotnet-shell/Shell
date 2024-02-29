@@ -9,7 +9,7 @@ namespace Dotnet.Shell.API.Helpers
         public static void WriteLine(string message, Color? textColor = null)
         {
             Color txtColor = textColor ?? Color.Cyan;
-            Console.WriteLine(new ColorString(message, txtColor).TextWithFormattingCharacters);
+            Console.WriteLine(new ColorString(message, txtColor));
         }
     }
 }

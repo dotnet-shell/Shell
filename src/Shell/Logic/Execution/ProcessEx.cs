@@ -77,7 +77,7 @@ namespace Dotnet.Shell.Logic.Execution
         /// <returns></returns>
         public ProcessEx WaitTillExit(object s)
         {
-            var shell = s as Dotnet.Shell.API.Shell;
+            var shell = s as API.Shell;
 
             shell.SetForegroundProcess(this);
 

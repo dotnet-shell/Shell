@@ -29,7 +29,7 @@ namespace Dotnet.Shell.API
         /// </summary>
         /// <param name="onStartedListening">Called when listening has started.</param>
         /// <returns>Task</returns>
-        /// <exception cref="System.IO.InvalidDataException">Invalid token</exception>
+        /// <exception cref="InvalidDataException">Invalid token</exception>
         public static async Task<string> ListenForSearchResultAsync(Action<int, string> onStartedListening)
         {
             var result = string.Empty;

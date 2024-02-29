@@ -46,7 +46,7 @@ namespace Dotnet.Shell.Logic.Execution
         /// <returns>Process</returns>
         public static ProcessEx Exec(string cmdline, object shellObj = null, Object redirectionObj = null)
         {
-            Dotnet.Shell.API.Shell shell = shellObj as Dotnet.Shell.API.Shell;
+            API.Shell shell = shellObj as API.Shell;
             Redirection redirection = redirectionObj == null ? Redirection.None : (Redirection)redirectionObj;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Settings.Default.SubShellArgumentsFormat.Contains("-Encoded"))
@@ -135,7 +135,7 @@ namespace Dotnet.Shell.Logic.Execution
                 {
                     var jsonLines = await File.ReadAllLinesAsync(Settings.Default.HistoryFile);
 
-                    Parallel.ForEach<string>(jsonLines, item => {
+                    Parallel.ForEach(jsonLines, item => {
                         if (!string.IsNullOrWhiteSpace(item))
                         {
                             history.Add(JsonConvert.DeserializeObject<HistoryItem>(item));
@@ -162,7 +162,7 @@ namespace Dotnet.Shell.Logic.Execution
                 Directory.CreateDirectory(baseDir);
             }
 
-            var json = history.ToList().ConvertAll<string>(x => x.Serialize());
+            var json = history.ToList().ConvertAll(x => x.Serialize());
 
             await File.AppendAllLinesAsync(Settings.Default.HistoryFile, json);
         }

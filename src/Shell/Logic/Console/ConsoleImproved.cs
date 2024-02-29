@@ -13,7 +13,7 @@ namespace Dotnet.Shell.Logic.Console
     /// A class that wraps both ConsoleKey and ConsoleModifiers to provide a clear
     /// representation of a keypress
     /// </summary>
-    /// <seealso cref="System.IEquatable&lt;Dotnet.Shell.Logic.Console.ConsoleKeyEx&gt;" />
+    /// <seealso cref="IEquatable&lt;ConsoleKeyEx&gt;" />
     public class ConsoleKeyEx : IEquatable<ConsoleKeyEx>
     {
         /// <summary>
@@ -327,7 +327,7 @@ namespace Dotnet.Shell.Logic.Console
         public object Tag = null;
 
         private int lastPromptLength = 0;
-        private ConsoleTextSpan userText = new Console.ConsoleTextSpan();
+        private ConsoleTextSpan userText = new ConsoleTextSpan();
         private readonly IConsole implementation;
         private int currentHistoryIndex;
         private int lastRawPosition;
@@ -339,7 +339,7 @@ namespace Dotnet.Shell.Logic.Console
         /// </summary>
         /// <param name="consoleImplementation">The console implementation.</param>
         /// <param name="shell">The shell.</param>
-        public ConsoleImproved(IConsole consoleImplementation, Dotnet.Shell.API.Shell shell)
+        public ConsoleImproved(IConsole consoleImplementation, API.Shell shell)
         {
             implementation = consoleImplementation;
             Shell = shell;

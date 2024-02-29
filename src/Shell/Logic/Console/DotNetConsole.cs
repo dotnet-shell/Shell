@@ -2,22 +2,30 @@
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Dotnet.Shell.Logic.Console
 {
     public class DotNetConsole : IConsole
     {
-        public int CursorLeft { get => System.Console.CursorLeft; set { System.Console.CursorLeft = value; } }
-        public int CursorTop { get => System.Console.CursorTop; set { System.Console.CursorTop = value; } }
+        public int CursorLeft
+        { get => System.Console.CursorLeft; set { System.Console.CursorLeft = value; } }
 
-        public ConsoleColor ForegroundColor { get => System.Console.ForegroundColor; set { System.Console.ForegroundColor = value; } }
-        public ConsoleColor BackgroundColor { get => System.Console.BackgroundColor; set { System.Console.BackgroundColor = value; } }
+        public int CursorTop
+        { get => System.Console.CursorTop; set { System.Console.CursorTop = value; } }
+
+        public ConsoleColor ForegroundColor
+        { get => System.Console.ForegroundColor; set { System.Console.ForegroundColor = value; } }
+
+        public ConsoleColor BackgroundColor
+        { get => System.Console.BackgroundColor; set { System.Console.BackgroundColor = value; } }
 
         bool IConsole.CursorVisible { set { System.Console.CursorVisible = value; } }
+
         int IConsole.WindowWidth { get => System.Console.WindowWidth; }
+
         int IConsole.WindowHeight { get => System.Console.WindowHeight; }
+
 
         public bool KeyAvailiable { get => System.Console.KeyAvailable; }
 
@@ -28,9 +36,9 @@ namespace Dotnet.Shell.Logic.Console
             return System.Console.ReadKey();
         }
 
-        public void Write(string text) => System.Console.Write(text);
+        public void Write(string text = default) => System.Console.Write(text);
 
-        public void WriteLine(string message) => System.Console.WriteLine(message);
+        public void WriteLine(string message = default) => System.Console.WriteLine(message);
 
         public Task SaveAsync()
         {

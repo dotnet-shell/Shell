@@ -1,21 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading.Tasks;
-using Dotnet.Script.Core;
+﻿using Dotnet.Script.Core;
 using Dotnet.Script.DependencyModel.Context;
 using Dotnet.Script.DependencyModel.Logging;
 using Dotnet.Script.DependencyModel.NuGet;
 using Dotnet.Shell.UI;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Dotnet.Shell.Logic.Compilation
 {
@@ -23,97 +22,101 @@ namespace Dotnet.Shell.Logic.Compilation
     /// This class integrates dotnet-shell with Dotnet Script.
     /// It is based on a simplified version of https://github.com/filipw/dotnet-script/blob/master/src/Dotnet.Script.Core/Interactive/InteractiveRunner.cs
     /// </summary>
-    internal class InteractiveRunner
+    internal sealed class InteractiveRunner
     {
-        private ScriptState<object> scriptState;
-        private ScriptOptions scriptOptions;
+        private ScriptState<object> _scriptState;
+        private ScriptOptions _scriptOptions;
 
-        private readonly InteractiveScriptGlobals globals;
-        private readonly string[] packageSources = Array.Empty<string>();
+        private readonly InteractiveScriptGlobals _globals;
+        private readonly string[] _packageSources = Array.Empty<string>();
 
-        protected Logger logger;
-        protected ScriptCompiler scriptCompiler;
-        protected ScriptConsole console = ScriptConsole.Default;
-        protected CSharpParseOptions parseOptions = new(LanguageVersion.Latest, kind: SourceCodeKind.Script);
-        protected InteractiveCommandProvider interactiveCommandParser = new();
+        private readonly Logger _logger;
+        private readonly ScriptCompiler _scriptCompiler;
+        private readonly ScriptConsole _scriptConsole;
 
-        public ImmutableDictionary<string, object> ScriptVariables 
+        public InteractiveRunner(ErrorDisplay errorDisplay)
+        {
+            var logFactory = CreateLogFactory("WARNING", errorDisplay);
+
+            _logger = logFactory.CreateLogger<InteractiveRunner>();
+            _scriptConsole = ScriptConsole.Default;
+            _globals = new InteractiveScriptGlobals(_scriptConsole.Out, CSharpObjectFormatter.Instance);
+            _scriptCompiler = new ScriptCompiler(logFactory, false);
+        }
+
+        public ImmutableDictionary<string, object> ScriptVariables
         {
             get
             {
                 var vars = new Dictionary<string, object>();
-                foreach (var variable in scriptState.Variables)
+
+                foreach (var variable in _scriptState.Variables)
                 {
                     if (!vars.ContainsKey(variable.Name))
                     {
                         vars.Add(variable.Name, variable.Value);
                     }
                 }
+
                 return vars.ToImmutableDictionary();
             }
         }
 
-        public InteractiveRunner(ErrorDisplay errorDisplay)
-        {
-            var logFactory = CreateLogFactory("WARNING", errorDisplay);
-            logger = logFactory.CreateLogger<InteractiveRunner>();
-
-            globals = new InteractiveScriptGlobals(console.Out, CSharpObjectFormatter.Instance);
-            scriptCompiler = new ScriptCompiler(logFactory, false);
-        }
+       
 
         public async Task<object> ExecuteAsync(string input, string workingDirectory)
         {
-            if (scriptState == null)
+            if (_scriptState == null)
             {
                 var sourceText = SourceText.From(input);
-                var context = new ScriptContext(sourceText, workingDirectory, Enumerable.Empty<string>(), scriptMode: ScriptMode.REPL, packageSources: packageSources);
+                var context = new ScriptContext(sourceText, workingDirectory, Enumerable.Empty<string>(), scriptMode: ScriptMode.REPL, packageSources: _packageSources);
+                
                 await RunFirstScriptAsync(context);
             }
             else
             {
-                if (input.StartsWith("#r ") || input.StartsWith("#load "))
+                if (input.StartsWith("#r ") || input.StartsWith(ShellExecutor.LOAD_MARKER))
                 {
-                    var lineRuntimeDependencies = scriptCompiler.RuntimeDependencyResolver.GetDependenciesForCode(workingDirectory, ScriptMode.REPL, packageSources, input).ToArray();
+                    var lineRuntimeDependencies = _scriptCompiler.RuntimeDependencyResolver.GetDependenciesForCode(workingDirectory, ScriptMode.REPL, _packageSources, input).ToArray();
                     var lineDependencies = lineRuntimeDependencies.SelectMany(rtd => rtd.Assemblies).Distinct();
 
                     var scriptMap = lineRuntimeDependencies.ToDictionary(rdt => rdt.Name, rdt => rdt.Scripts);
                     if (scriptMap.Count > 0)
                     {
-                        scriptOptions =
-                            scriptOptions.WithSourceResolver(
+                        _scriptOptions =
+                            _scriptOptions.WithSourceResolver(
                                 new NuGetSourceReferenceResolver(
                                     new SourceFileResolver(ImmutableArray<string>.Empty, workingDirectory), scriptMap));
                     }
                     foreach (var runtimeDependency in lineDependencies)
                     {
-                        logger.Debug("Adding reference to a runtime dependency => " + runtimeDependency);
-                        scriptOptions = scriptOptions.AddReferences(MetadataReference.CreateFromFile(runtimeDependency.Path));
+                        _logger.Debug("Adding reference to a runtime dependency => " + runtimeDependency);
+                        _scriptOptions = _scriptOptions.AddReferences(MetadataReference.CreateFromFile(runtimeDependency.Path));
                     }
                 }
-                scriptState = await scriptState.ContinueWithAsync(input, scriptOptions);
+                _scriptState = await _scriptState.ContinueWithAsync(input, _scriptOptions);
             }
 
-            return scriptState.ReturnValue;
+            return _scriptState.ReturnValue;
         }
 
         private async Task RunFirstScriptAsync(ScriptContext scriptContext)
         {
             foreach (var arg in scriptContext.Args)
             {
-                globals.Args.Add(arg);
+                _globals.Args.Add(arg);
             }
 
-            var compilationContext = scriptCompiler.CreateCompilationContext<object, InteractiveScriptGlobals>(scriptContext);
-            console.WriteDiagnostics(compilationContext.Warnings, compilationContext.Errors);
+            var compilationContext = _scriptCompiler.CreateCompilationContext<object, InteractiveScriptGlobals>(scriptContext);
+            _scriptConsole.WriteDiagnostics(compilationContext.Warnings, compilationContext.Errors);
 
-            if (compilationContext.Errors.Any())
+            if (compilationContext.Errors.Length >0)
             {
                 throw new CompilationErrorException("Script compilation failed due to one or more errors.", compilationContext.Errors.ToImmutableArray());
             }
 
-            scriptState = await compilationContext.Script.RunAsync(globals, ex => true).ConfigureAwait(false);
-            scriptOptions = compilationContext.ScriptOptions;
+            _scriptState = await compilationContext.Script.RunAsync(_globals, ex => true).ConfigureAwait(false);
+            _scriptOptions = compilationContext.ScriptOptions;
         }
 
         private static LogFactory CreateLogFactory(string verbosity, ErrorDisplay errorDisplay)

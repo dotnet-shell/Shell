@@ -150,7 +150,7 @@ Visual Studio solutions and VS Code projects are published with this repo. Other
 **Logie Urquhart** (Took over 2/2004)
 **i-am-shodan** (Original Project)
 
-* Github: [@TheLogster](https://github.com/Thelogster
+* Github: [@TheLogster](https://github.com/Thelogster)
 * Github: [@i-am-shodan](https://github.com/i-am-shodan)
 
 

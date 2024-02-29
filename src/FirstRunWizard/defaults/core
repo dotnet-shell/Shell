@@ -2,14 +2,8 @@
 using System.Runtime.InteropServices;
 using System.Drawing;
 using Dotnet.Shell.UI;
+using Dotnet.Shell.API.Helpers;
 
-Shell.Prompt = () => 
-{
-    return new ColorString(" " + Shell.WorkingDirectory + ">", Color.LightBlue) + " ";
-};
-
-Shell.Paths.Add("C:\\Windows");
-Shell.Paths.Add("C:\\Windows\\System32");
 
 // Load user functions store in homedir
 var functionsDir = Path.Combine(Shell.HomeDirectory, Shell.DefaultScriptExtension, "functions");
@@ -21,7 +15,7 @@ if (Directory.Exists(functionsDir))
 
     foreach (var file in functions.OrderBy(q => q))
     {
-        Console.WriteLine(new ColorString($"Loading script - {file}", Color.Teal).TextWithFormattingCharacters);
+        ConsoleEx.WriteLine($"Executing script - {file}", Color.Teal);
         #load $file$
     }
 }
@@ -33,10 +27,12 @@ if (File.Exists(aliasesFile))
     #load $aliasesFile$
 }
 
-if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-{
-    Console.WriteLine(new ColorString("This OS is currently in beta!", Color.Red).TextWithFormattingCharacters);
-}
-
 // Ensure we start in the users homedir
 cd ~
+
+
+Shell.Prompt = () => 
+{
+    return new ColorString($"[{DateTime.UtcNow}] {Shell.WorkingDirectory}> ", Color.LightBlue);
+};
+
