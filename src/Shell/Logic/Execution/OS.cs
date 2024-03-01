@@ -86,13 +86,9 @@ namespace Dotnet.Shell.Logic.Execution
 
             // Windows handles stdout redirection differently, to work around this we copy to console if
             // we have no redirection otherwise we copy to an internal stream
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !redirection.HasFlag(Redirection.Out))
             {
-                if (!redirection.HasFlag(Redirection.Out))
-                {
-                    // copy straight to the console
-                    _ = proc.StandardOutput.BaseStream.CopyToAsync(System.Console.OpenStandardOutput());
-                }
+                proc.StandardOutput.BaseStream.CopyTo(System.Console.OpenStandardOutput());
             }
 
             return procEx;
