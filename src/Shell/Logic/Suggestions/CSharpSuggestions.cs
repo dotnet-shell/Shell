@@ -126,7 +126,7 @@ namespace Dotnet.Shell.Logic.Suggestions
                 return new List<Suggestion>();
             }
 
-            foreach (var i in results.Items)
+            foreach (var i in results.ItemsList)
             {
                 if (i.Properties.ContainsKey("SymbolKind") && i.Properties["SymbolKind"] == "9" &&
                     i.Properties.ContainsKey("InsertionText"))

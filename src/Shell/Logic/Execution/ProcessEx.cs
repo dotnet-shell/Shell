@@ -43,19 +43,15 @@ namespace Dotnet.Shell.Logic.Execution
         private bool disposedValue;
         private readonly Process p;
         private readonly CancellationTokenSource terminateProcessTokenSource = new();
+        private readonly MemoryStream InternalStdOut = new MemoryStream();
+        private readonly MemoryStream InternalStdErr = new MemoryStream();
         private CancellationTokenSource suspendProcessTokenSource = new();
         private bool suspended = false;
 
         public Process Process => p;
-        internal Stream WindowsStdOut { get; private set; } = null;
 
         public ProcessEx(Process p)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                WindowsStdOut = new MemoryStream();
-            }
-
             this.p = p;
         }
 
@@ -85,6 +81,21 @@ namespace Dotnet.Shell.Logic.Execution
             {
                 shell.RemoveFromBackgroundProcesses(this);
                 Resume();
+            }
+
+            // I've noticed an issue on net6 (windows) and now .net8 where if the process
+            // has 'lots' of stdout then WaitForExitAsync will never return false. To work around
+            // this if we have opted for redirection we copy to an internal stream
+            if (p.StartInfo.RedirectStandardOutput)
+            {
+                p.StandardOutput.BaseStream.CopyTo(InternalStdOut);
+                InternalStdOut.Position = 0;
+            }
+
+            if (p.StartInfo.RedirectStandardError)
+            {
+                p.StandardError.BaseStream.CopyTo(InternalStdErr);
+                InternalStdErr.Position = 0;
             }
 
             using (var cts = CancellationTokenSource.CreateLinkedTokenSource(terminateProcessTokenSource.Token, suspendProcessTokenSource.Token))
@@ -171,13 +182,7 @@ namespace Dotnet.Shell.Logic.Execution
         public T ConvertStdOutToVariable<T>()
         {
             p.WaitForExit();
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                WindowsStdOut.Position = 0;
-            }
-
-            return ConvertStreamToVariable<T>(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WindowsStdOut : p.StandardOutput.BaseStream);
+            return ConvertStreamToVariable<T>(InternalStdOut);
         }
 
         /// <summary>
@@ -189,7 +194,7 @@ namespace Dotnet.Shell.Logic.Execution
         public T ConvertStdErrToVariable<T>()
         {
             p.WaitForExit();
-            return ConvertStreamToVariable<T>(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WindowsStdOut : p.StandardOutput.BaseStream);
+            return ConvertStreamToVariable<T>(InternalStdErr);
         }
 
         /// <summary>
@@ -202,8 +207,8 @@ namespace Dotnet.Shell.Logic.Execution
         {
             if (p.StartInfo.RedirectStandardError)
             {
-                var stdErrTask = p.StandardError.BaseStream.CopyToAsync(stream);
                 p.WaitForExit();
+                var stdErrTask = InternalStdErr.CopyToAsync(stream);
 
                 try
                 {
@@ -286,10 +291,8 @@ namespace Dotnet.Shell.Logic.Execution
                     suspendProcessTokenSource.Cancel();
                     suspendProcessTokenSource.Dispose();
 
-                    if (WindowsStdOut != null)
-                    {
-                        WindowsStdOut.Dispose();
-                    }
+                    InternalStdOut.Dispose();
+                    InternalStdErr.Dispose();
                 }
 
                 disposedValue = true;
