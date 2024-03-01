@@ -261,7 +261,7 @@ namespace Dotnet.Shell
                         }
                         catch (ExitException)
                         {
-                            interactiveModeCancellationSource.Cancel();
+                            await interactiveModeCancellationSource.CancelAsync();
                             await OS.WriteHistoryAsync(historyToWrite);
                             break;
                         }
