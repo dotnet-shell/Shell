@@ -41,7 +41,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="ConsoleGUI" Version="1.4.1" />
+    <PackageReference Include="ConsoleGUI" Version="1.4.2" />
     <PackageReference Include="Mono.Posix.NETStandard" Version="1.0.0" />
   </ItemGroup>
 
