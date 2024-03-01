@@ -88,12 +88,7 @@ namespace Dotnet.Shell.Logic.Execution
             // we have no redirection otherwise we copy to an internal stream
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                if (redirection.HasFlag(Redirection.Out))
-                {
-                    // use internal stream
-                    _ = proc.StandardOutput.BaseStream.CopyToAsync(procEx.WindowsStdOut);
-                }
-                else
+                if (!redirection.HasFlag(Redirection.Out))
                 {
                     // copy straight to the console
                     _ = proc.StandardOutput.BaseStream.CopyToAsync(System.Console.OpenStandardOutput());
